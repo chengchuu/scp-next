@@ -18,18 +18,18 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mazeyqian/mazey-scp-cli.git"
+    "url": "git+https://github.com/chengchuu/mazey-scp-cli.git"
   },
   "author": {
-		"name": "Mazey Chu",
+		"name": "Cheng",
 		"email": "mazeyqian@gmail.com",
-		"url": "https://blog.mazey.net"
+		"url": "https://github.com/chengchuu"
 	},
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mazeyqian/mazey-scp-cli/issues"
+    "url": "https://github.com/chengchuu/mazey-scp-cli/issues"
   },
-  "homepage": "https://github.com/mazeyqian/mazey-scp-cli#readme",
+  "homepage": "https://github.com/chengchuu/mazey-scp-cli#readme",
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-semistandard": "^15.0.0",
