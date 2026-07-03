@@ -52,6 +52,7 @@ export function addTransferOptions(command: { option: (flags: string, descriptio
   command.option("--recursive", "Transfer directories recursively");
   command.option("--overwrite", "Overwrite existing destination files");
   command.option("--create-directories", "Create missing destination directories");
+  command.option("--no-create-directories", "Do not create missing destination directories");
   command.option("--dry-run", "Resolve and validate without connecting or transferring");
   command.addOption(new Option("--timeout <milliseconds>", "Connection/operation timeout").argParser(parseInteger));
   command.option("--verbose", "Print verbose diagnostic output");

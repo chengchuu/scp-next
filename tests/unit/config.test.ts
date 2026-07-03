@@ -47,8 +47,24 @@ describe("configuration loading and precedence", () => {
     expect(resolved.host).toBe("cli.example.com");
     expect(resolved.username).toBe("env-user");
     expect(resolved.overwrite).toBe(true);
+    expect(resolved.createDirectories).toBe(true);
     expect(resolved.source).toBe(path.resolve("/workspace", "./dist"));
     expect(resolved.destination).toBe("/var/www/example");
+  });
+
+  it("allows configuration to disable the createDirectories default", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "/var/log/example.log",
+      destination: "./logs/example.log",
+      config: {
+        transfer: {
+          createDirectories: false
+        }
+      }
+    });
+
+    expect(resolved.createDirectories).toBe(false);
   });
 
   it("uses configured jobs with canonical source and destination", () => {

@@ -100,6 +100,36 @@ describe("CLI", () => {
     expect(handlers.upload).not.toHaveBeenCalled();
   });
 
+  it("allows createDirectories to be disabled from the CLI", async () => {
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const handlers = mockHandlers();
+    const exitCode = await runCli({
+      argv: [
+        "node",
+        "scp-next",
+        "upload",
+        "./dist",
+        "/var/www/example",
+        "--host",
+        "example.com",
+        "--username",
+        "deploy",
+        "--password",
+        "secret",
+        "--dry-run",
+        "--no-create-directories"
+      ],
+      output: { stdout, stderr },
+      handlers,
+      cwd: process.cwd()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output).toContain("Dry run: upload");
+    expect(handlers.upload).not.toHaveBeenCalled();
+  });
+
   it("maps upload source to localPath and destination to remotePath", async () => {
     const stdout = new MemoryStream();
     const stderr = new MemoryStream();

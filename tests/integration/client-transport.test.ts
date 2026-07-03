@@ -127,7 +127,6 @@ describe("ScpNextClientImpl with mock transport", () => {
     );
 
     await client.upload(localFile, "/missing-dir/", {
-      createDirectories: true,
       overwrite: false
     });
 
@@ -205,7 +204,6 @@ describe("ScpNextClientImpl with mock transport", () => {
     );
 
     await client.download("/var/log/example.log", `${localDirectory}${path.sep}`, {
-      createDirectories: true,
       overwrite: false
     });
 

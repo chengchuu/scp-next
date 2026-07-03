@@ -44,8 +44,7 @@ scp-next run <job> [source] [destination] [options]
 CLI commands use `<source> <destination>`. Programmatic upload and download APIs use
 `localPath` and `remotePath`.
 
-Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename.
-Use `--create-directories` when a destination directory may be missing.
+Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename. Missing destination directories are created by default.
 
 ## Upload Examples
 
@@ -54,8 +53,7 @@ scp-next upload ./dist /var/www/example \
   --host example.com \
   --username deploy \
   --private-key-file ~/.ssh/id_ed25519 \
-  --recursive \
-  --create-directories
+  --recursive
 ```
 
 Password authentication:
@@ -77,8 +75,7 @@ Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for share
 scp-next download /var/log/example.log ./logs/example.log \
   --host example.com \
   --username deploy \
-  --private-key-file ~/.ssh/id_ed25519 \
-  --create-directories
+  --private-key-file ~/.ssh/id_ed25519
 ```
 
 ## CLI Options
@@ -96,7 +93,8 @@ scp-next download /var/log/example.log ./logs/example.log \
 | `--profile <name>`                    | Named server profile from the configuration file.                      |
 | `--recursive`                         | Transfer directories recursively.                                      |
 | `--overwrite`                         | Allow replacing existing destination files.                            |
-| `--create-directories`                | Create missing destination directories when supported.                 |
+| `--create-directories`                | Create missing destination directories. Enabled by default.            |
+| `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
 | `--timeout <milliseconds>`            | Connection and operation timeout in milliseconds.                      |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |

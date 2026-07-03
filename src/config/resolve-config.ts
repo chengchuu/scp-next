@@ -33,7 +33,7 @@ const DEFAULT_TRANSFER: Omit<ResolvedTransferConfig, "operation" | "source" | "d
   port: 22,
   recursive: false,
   overwrite: false,
-  createDirectories: false,
+  createDirectories: true,
   dryRun: false
 };
 

@@ -88,7 +88,7 @@ export async function validateDownloadOptions(options: DownloadOptions): Promise
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
-  await assertDownloadDestination(options.localPath, options.createDirectories);
+  await assertDownloadDestination(options.localPath, options.createDirectories ?? true);
 
   if (!options.dryRun) {
     await validateServerOptions(options);
