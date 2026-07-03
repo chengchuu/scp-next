@@ -12,10 +12,17 @@ class MockTransport implements SftpTransport {
   close = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   exists = vi.fn<(remotePath: string) => Promise<false | "-" | "d" | "l">>().mockImplementation((remotePath) => {
     if (remotePath === "/var/www" || remotePath === "/var/www/") return Promise.resolve("d");
+    if (remotePath === "/var/log/example.log") return Promise.resolve("-");
+    if (remotePath === "/var/log/example") return Promise.resolve("d");
     return Promise.resolve(false);
   });
   mkdir = vi.fn<(remotePath: string, recursive?: boolean) => Promise<void>>().mockResolvedValue(undefined);
-  list = vi.fn<(remotePath: string) => Promise<[]>>().mockResolvedValue([]);
+  list = vi.fn<(remotePath: string) => Promise<Array<{ type: "-"; name: string; size: number }>>>().mockImplementation((remotePath) => {
+    if (remotePath === "/var/log/example") {
+      return Promise.resolve([{ type: "-", name: "app.log", size: 4 }]);
+    }
+    return Promise.resolve([]);
+  });
   uploadFile = vi
     .fn<
       (
@@ -128,6 +135,108 @@ describe("ScpNextClientImpl with mock transport", () => {
     expect(transport.uploadFile).toHaveBeenCalledWith(
       localFile,
       "/missing-dir/README.md",
+      expect.any(Function)
+    );
+  });
+
+  it("uploads a local directory into an existing remote directory destination", async () => {
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-upload-directory");
+    const localDirectory = path.join(directory, "dist");
+    const localFile = path.join(localDirectory, "app.txt");
+    await mkdir(localDirectory, { recursive: true });
+    await writeFile(localFile, "test");
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.upload(localDirectory, "/var/www/", {
+      recursive: true,
+      overwrite: false
+    });
+
+    expect(transport.mkdir).toHaveBeenCalledWith("/var/www/dist", true);
+    expect(transport.uploadFile).toHaveBeenCalledWith(
+      localFile,
+      "/var/www/dist/app.txt",
+      expect.any(Function)
+    );
+  });
+
+  it("downloads a remote file into an existing local directory destination", async () => {
+    const localDirectory = path.join(os.tmpdir(), "scp-next-tests", "client-download-file");
+    await mkdir(localDirectory, { recursive: true });
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.download("/var/log/example.log", localDirectory, {
+      overwrite: false
+    });
+
+    expect(transport.downloadFile).toHaveBeenCalledWith(
+      "/var/log/example.log",
+      path.join(localDirectory, "example.log"),
+      expect.any(Function)
+    );
+  });
+
+  it("downloads a remote file into a trailing-slash local directory destination", async () => {
+    const localDirectory = path.join(os.tmpdir(), "scp-next-tests", "client-download-file-slash");
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.download("/var/log/example.log", `${localDirectory}${path.sep}`, {
+      createDirectories: true,
+      overwrite: false
+    });
+
+    expect(transport.downloadFile).toHaveBeenCalledWith(
+      "/var/log/example.log",
+      path.join(localDirectory, "example.log"),
+      expect.any(Function)
+    );
+  });
+
+  it("downloads a remote directory into an existing local directory destination", async () => {
+    const localDirectory = path.join(os.tmpdir(), "scp-next-tests", "client-download-directory");
+    await mkdir(localDirectory, { recursive: true });
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.download("/var/log/example", localDirectory, {
+      recursive: true,
+      overwrite: false
+    });
+
+    expect(transport.downloadFile).toHaveBeenCalledWith(
+      "/var/log/example/app.log",
+      path.join(localDirectory, "example", "app.log"),
       expect.any(Function)
     );
   });
