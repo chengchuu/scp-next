@@ -1,40 +1,48 @@
 {
   "name": "scp-next",
-  "version": "2.1.5",
-  "description": "A Modern TypeScript CLI and Library for Secure File Transfers",
-  "main": "lib/index.cjs.js",
-  "module": "lib/index.esm.js",
-  "typings": "lib/index.d.ts",
-  "types": "lib/index.d.ts",
-  "mainEntryPointFilePath": "lib/index.d.ts",
-  "directories": {
-    "lib": "./lib"
+  "version": "0.1.0",
+  "description": "A TypeScript CLI and library for secure SSH file transfers using SFTP.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
   },
-  "unpkg": "lib/scp-next.min.js",
-  "jsdelivr": "lib/scp-next.min.js",
+  "bin": {
+    "scp-next": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs"
+  ],
   "scripts": {
-    "dev": "webpack-dev-server --config ./scripts/webpack.config.dev.js",
-    "dev:open": "webpack-dev-server --config ./scripts/webpack.config.dev.js --open",
-    "build": "cross-env SCRIPTS_NPM_PACKAGE_DEBUG=close SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version rollup --config ./scripts/rollup.config.mjs",
-    "build:debug": "cross-env SCRIPTS_NPM_PACKAGE_DEBUG=open SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version rollup --config ./scripts/rollup.config.mjs",
-    "build:dev": "webpack --config ./scripts/webpack.config.dev.js",
-    "test": "jest",
-    "docs": "typedoc --readme ./README.md --excludeProtected --excludePrivate --excludeInternal --hideGenerator",
-    "lint:fix": "eslint --ext 'js,ts,tsx' --fix ./examples ./scripts ./src ./test ./types",
-    "preview": "npm run build && npm run test",
-    "release": "npm run preview && cross-env SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version node ./scripts/release.js",
-    "release:win": "bash scripts/env-win.sh && npm i --registry=https://registry.npmjs.org && npm run release"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/chengchuu/scp-next.git"
+    "build": "tsup",
+    "clean": "rimraf dist coverage",
+    "dev": "tsx src/cli/index.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run typecheck && npm run lint && npm test && npm run build"
   },
   "keywords": [
-    "template",
-    "typescript",
-    "function",
-    "document",
-    "test"
+    "scp",
+    "sftp",
+    "ssh",
+    "transfer",
+    "cli",
+    "typescript"
   ],
   "author": {
     "name": "Cheng",
@@ -42,70 +50,37 @@
     "url": "https://github.com/chengchuu"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chengchuu/scp-next.git"
+  },
   "bugs": {
     "url": "https://github.com/chengchuu/scp-next/issues"
   },
   "homepage": "https://github.com/chengchuu/scp-next#readme",
-  "devDependencies": {
-    "@babel/core": "^7.23.2",
-    "@babel/plugin-transform-class-properties": "^7.22.5",
-    "@babel/plugin-transform-object-rest-spread": "^7.22.15",
-    "@babel/plugin-transform-runtime": "^7.23.2",
-    "@babel/preset-env": "^7.23.2",
-    "@babel/preset-typescript": "^7.23.2",
-    "@babel/runtime": "^7.23.2",
-    "@babel/runtime-corejs3": "^7.23.2",
-    "@commitlint/cli": "^17.8.1",
-    "@commitlint/config-conventional": "^17.8.1",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@types/jquery": "^3.5.29",
-    "@types/node": "^25.0.9",
-    "@typescript-eslint/eslint-plugin": "^6.12.0",
-    "@typescript-eslint/parser": "^6.12.0",
-    "clean-webpack-plugin": "^4.0.0",
-    "core-js": "^3.33.2",
-    "cross-env": "^7.0.3",
-    "date-fns": "^2.30.0",
-    "eslint": "^8.54.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "execa": "^5.1.1",
-    "html-webpack-plugin": "^5.5.3",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "jquery": "^3.7.1",
-    "lint-staged": "^14.0.1",
-    "markdown-toc": "^1.2.0",
-    "prettier": "^2.8.8",
-    "prettier-eslint-cli": "^8.0.1",
-    "rollup": "^3.29.4",
-    "rollup-plugin-cleaner": "^1.0.0",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-copy": "^3.4.0",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-typescript2": "^0.34.1",
-    "ts-loader": "^9.4.4",
-    "tslib": "^2.6.2",
-    "typedoc": "^0.25.4",
-    "typescript": "5.3.2",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged"
-    }
+  "engines": {
+    "node": ">=18.18.0"
   },
   "dependencies": {
-    "mazey": "^4.11.0"
+    "commander": "^12.1.0",
+    "ssh2-sftp-client": "^11.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

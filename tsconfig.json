@@ -1,36 +1,33 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES2015",
-    "module": "ESNext",
-    "lib": ["es5", "DOM", "ScriptHost", "ESNext"],
-    "allowJs": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./lib",
-    "rootDir": ".",
-    "importHelpers": true,
-    "strict": true,
-    "noImplicitThis": false,
-    "moduleResolution": "bundler",
-    "paths": {
-      "tslib": ["./node_modules/tslib/tslib.d.ts"],
-      "mazey": ["./node_modules/mazey/lib/index.d.ts"]
-    },
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "types": ["global"],
-    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "scp-next": ["./src/index.ts"]
+    }
   },
   "include": [
-    "./src/**/*.ts",
-    "./types/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "examples/**/*.ts",
+    "tsup.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js"
   ],
-  "typedocOptions": {
-    "entryPoints": ["./src"],
-    "out": "docs"
-  }
+  "exclude": ["dist", "coverage", "node_modules"]
 }

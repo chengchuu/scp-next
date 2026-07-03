@@ -6,6 +6,7 @@ dist/
 dist-dev/
 lib/
 coverage/
+tests/.tmp/
 
 # Test reports
 test/unit/coverage/
@@ -37,7 +38,6 @@ yarn-debug.log*
 yarn-error.log*
 selenium-debug.log*
 
-# Package lock files
-package-lock.json
+# Package manager workspace files
 pnpm-lock.yaml
 pnpm-workspace.yaml

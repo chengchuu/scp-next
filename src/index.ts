@@ -1,21 +1,6 @@
-/**
- * @author Cheng
- */
-
-/**
- * Foo foo foo, Foo description.
- *
- * @returns {boolean} true or false
- */
-export function foo(): boolean {
-  return true;
-}
-
-/**
- * Bar bar bar, Bar description.
- *
- * @returns {boolean} true or false
- */
-export function bar(): boolean {
-  return false;
-}
+export { createClient, ScpNextClientImpl } from "./client/client.js";
+export { upload } from "./client/upload.js";
+export { download } from "./client/download.js";
+export { copy } from "./client/copy.js";
+export * from "./types/index.js";
+export * from "./errors/index.js";
