@@ -82,7 +82,12 @@ export function toScpNextError(error: unknown): ScpNextError {
     return new AuthenticationError("SSH authentication failed.", { cause: error });
   }
 
-  if (lowerMessage.includes("host verification") || lowerMessage.includes("host key")) {
+  if (
+    lowerMessage.includes("host verification") ||
+    lowerMessage.includes("host key") ||
+    lowerMessage.includes("fingerprint") ||
+    (lowerMessage.includes("host") && lowerMessage.includes("denied"))
+  ) {
     return new HostVerificationError("SSH host verification failed.", { cause: error });
   }
 

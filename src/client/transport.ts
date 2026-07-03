@@ -7,8 +7,14 @@ import type {
   TransferOptions as SftpTransferOptions
 } from "ssh2-sftp-client";
 
-import { ConnectionError, HostVerificationError, TransferError, toScpNextError } from "../errors/index.js";
+import {
+  ConnectionError,
+  HostVerificationError,
+  TransferError,
+  toScpNextError
+} from "../errors/index.js";
 import { createHostVerifier, resolveAllowedFingerprints } from "../security/host-verification.js";
+import { formatErrorMessage } from "../security/redact.js";
 import type { ScpServerOptions } from "../types/index.js";
 import { expandHome } from "../paths/local-path.js";
 
@@ -54,7 +60,11 @@ export class Ssh2SftpTransport implements SftpTransport {
   private readonly client: SftpClient;
 
   constructor(name = "scp-next") {
-    this.client = new SftpClient(name);
+    this.client = new SftpClient(name, {
+      error: () => undefined,
+      end: () => undefined,
+      close: () => undefined
+    });
   }
 
   async connect(options: ScpServerOptions): Promise<void> {
@@ -87,15 +97,24 @@ export class Ssh2SftpTransport implements SftpTransport {
     } catch (error) {
       const converted = toScpNextError(error);
       if (converted instanceof HostVerificationError) {
-        throw converted;
+        throw new HostVerificationError(
+          `SSH host verification failed during connection: ${formatErrorMessage(
+            error
+          )}.${hostVerificationTroubleshooting(options.host)}`,
+          { cause: error, context: connectionContext(options) }
+        );
       }
-      throw new ConnectionError("Unable to connect to SSH server.", {
+      if (isLikelyHostVerificationFailure(error)) {
+        throw new HostVerificationError(
+          `SSH host verification failed during connection.${hostVerificationTroubleshooting(
+            options.host
+          )}`,
+          { cause: error, context: connectionContext(options) }
+        );
+      }
+      throw new ConnectionError(`Unable to connect to SSH server: ${formatErrorMessage(error)}`, {
         cause: error,
-        context: {
-          host: options.host,
-          port: options.port,
-          username: options.username
-        }
+        context: connectionContext(options)
       });
     }
   }
@@ -125,7 +144,7 @@ export class Ssh2SftpTransport implements SftpTransport {
     try {
       await this.client.fastPut(localPath, remotePath, this.transferOptions(onStep));
     } catch (error) {
-      throw new TransferError(`Upload failed for ${localPath}.`, {
+      throw new TransferError(`Upload failed for ${localPath}: ${formatErrorMessage(error)}`, {
         cause: error,
         context: { localPath, remotePath }
       });
@@ -140,7 +159,7 @@ export class Ssh2SftpTransport implements SftpTransport {
     try {
       await this.client.fastGet(remotePath, localPath, this.transferOptions(onStep));
     } catch (error) {
-      throw new TransferError(`Download failed for ${remotePath}.`, {
+      throw new TransferError(`Download failed for ${remotePath}: ${formatErrorMessage(error)}`, {
         cause: error,
         context: { remotePath, localPath }
       });
@@ -157,4 +176,39 @@ export class Ssh2SftpTransport implements SftpTransport {
       }
     };
   }
+}
+
+function connectionContext(options: ScpServerOptions): Record<string, unknown> {
+  return {
+    host: options.host,
+    port: options.port,
+    username: options.username
+  };
+}
+
+function isLikelyHostVerificationFailure(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  return (
+    message.includes("host") &&
+    (message.includes("verif") ||
+      message.includes("fingerprint") ||
+      message.includes("host key") ||
+      message.includes("key mismatch") ||
+      message.includes("denied"))
+  );
+}
+
+function hostVerificationTroubleshooting(host: string | undefined): string {
+  const displayHost = host ?? "<host>";
+  return [
+    "",
+    "",
+    "Typical fix:",
+    `  ssh ${displayHost}`,
+    "",
+    "If plain ssh works but scp-next fails, check that the host entry is available in",
+    "`~/.ssh/known_hosts` for the same host and port used by scp-next. For non-default ports,",
+    "OpenSSH usually stores entries as `[host]:port`.",
+    "You can also configure hostFingerprint or knownHostsFile explicitly."
+  ].join("\n");
 }

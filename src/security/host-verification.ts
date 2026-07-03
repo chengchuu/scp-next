@@ -12,14 +12,56 @@ function normalizeFingerprint(fingerprint: string): string {
     .replace(/=+$/g, "");
 }
 
+function isHexFingerprint(fingerprint: string): boolean {
+  return /^[0-9a-f]+$/i.test(fingerprint);
+}
+
+function fingerprintCandidates(fingerprint: string): string[] {
+  const normalized = normalizeFingerprint(fingerprint);
+  const candidates = new Set([normalized]);
+
+  if (isHexFingerprint(normalized)) {
+    candidates.add(normalized.toLowerCase());
+  } else {
+    try {
+      candidates.add(Buffer.from(normalized, "base64").toString("hex"));
+    } catch {
+      // Keep the original normalized value when it is not valid base64.
+    }
+  }
+
+  return [...candidates];
+}
+
 export function isFingerprintMatch(actual: string, expected: string): boolean {
-  return normalizeFingerprint(actual) === normalizeFingerprint(expected);
+  const normalizedActual = normalizeFingerprint(actual);
+  const normalizedExpected = normalizeFingerprint(expected);
+  if (normalizedActual === normalizedExpected) {
+    return true;
+  }
+  return (
+    isHexFingerprint(normalizedActual) &&
+    isHexFingerprint(normalizedExpected) &&
+    normalizedActual.toLowerCase() === normalizedExpected.toLowerCase()
+  );
 }
 
 export interface HostVerifierConfig {
   host?: string | undefined;
+  port?: number | undefined;
   hostFingerprint?: string | undefined;
   knownHostsFile?: string | undefined;
+}
+
+function hostVerificationHint(host: string): string {
+  return [
+    "",
+    "Typical fix:",
+    `  ssh ${host}`,
+    "",
+    "If you trust the host key, accept it and retry the scp-next command.",
+    "Alternatively configure hostFingerprint or knownHostsFile explicitly."
+  ].join("\n");
 }
 
 export async function resolveAllowedFingerprints(
@@ -33,7 +75,9 @@ export async function resolveAllowedFingerprints(
   }
 
   if (options.hostFingerprint) {
-    fingerprints.add(normalizeFingerprint(options.hostFingerprint));
+    for (const fingerprint of fingerprintCandidates(options.hostFingerprint)) {
+      fingerprints.add(fingerprint);
+    }
   }
 
   try {
@@ -46,15 +90,17 @@ export async function resolveAllowedFingerprints(
       }
 
       const [hosts, algorithm, key] = trimmed.split(/\s+/);
-      if (!hosts || !algorithm || !key || !hosts.split(",").includes(options.host)) {
+      const hostPatterns = hosts?.split(",") ?? [];
+      const portHost = options.port ? `[${options.host}]:${options.port}` : undefined;
+      const matchesHost =
+        hostPatterns.includes(options.host) || Boolean(portHost && hostPatterns.includes(portHost));
+      if (!hosts || !algorithm || !key || !matchesHost) {
         continue;
       }
 
-      const fingerprint = createHash("sha256")
-        .update(Buffer.from(key, "base64"))
-        .digest("base64")
-        .replace(/=+$/g, "");
-      fingerprints.add(fingerprint);
+      const keyBuffer = Buffer.from(key, "base64");
+      fingerprints.add(createHash("sha256").update(keyBuffer).digest("base64").replace(/=+$/g, ""));
+      fingerprints.add(createHash("sha256").update(keyBuffer).digest("hex"));
     }
   } catch (error) {
     if (options.knownHostsFile || !options.hostFingerprint) {
@@ -67,7 +113,9 @@ export async function resolveAllowedFingerprints(
 
   if (fingerprints.size === 0) {
     throw new HostVerificationError(
-      "SSH host verification failed before connecting: no matching host fingerprint was configured."
+      `SSH host verification failed before connecting: no matching host fingerprint was configured.${hostVerificationHint(
+        options.host
+      )}`
     );
   }
 

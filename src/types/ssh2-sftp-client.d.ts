@@ -23,7 +23,14 @@ declare module "ssh2-sftp-client" {
   }
 
   export default class SftpClient {
-    constructor(name?: string);
+    constructor(
+      name?: string,
+      callbacks?: {
+        error?: (error: Error) => void;
+        end?: () => void;
+        close?: () => void;
+      }
+    );
     connect(options: ConnectOptions): Promise<void>;
     end(): Promise<void>;
     exists(remotePath: string): Promise<false | "-" | "d" | "l">;

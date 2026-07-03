@@ -116,10 +116,9 @@ export class ScpNextClientImpl implements ScpNextClient {
     }
 
     if (localKind === "file") {
-      await this.ensureRemoteParent(remotePath, options.createDirectories);
-      await this.assertRemoteOverwrite(remotePath, options.overwrite);
+      const destinationFile = await this.resolveRemoteDestinationForLocalFile(options, remotePath);
       const totalBytes = undefined;
-      await this.transport.uploadFile(resolveLocalPath(options.localPath), remotePath, (step) => {
+      await this.transport.uploadFile(resolveLocalPath(options.localPath), destinationFile, (step) => {
         options.onProgress?.({
           operation: "upload",
           source: options.localPath,
@@ -176,6 +175,43 @@ export class ScpNextClientImpl implements ScpNextClient {
       completedBytes += file.size;
       completedFiles += 1;
     }
+  }
+
+  private async resolveRemoteDestinationForLocalFile(
+    options: UploadOptions,
+    remotePath: string
+  ): Promise<string> {
+    const remoteKind = await this.transport.exists(remotePath);
+    const isDirectoryLikeDestination = remoteKind === "d" || remotePath.endsWith("/");
+
+    if (!isDirectoryLikeDestination) {
+      await this.ensureRemoteParent(remotePath, options.createDirectories);
+      await this.assertRemoteOverwrite(remotePath, options.overwrite);
+      return remotePath;
+    }
+
+    if (remoteKind && remoteKind !== "d") {
+      throw new TransferError(`Remote destination already exists and is not a directory: ${remotePath}`, {
+        context: { remotePath }
+      });
+    }
+
+    const remoteDirectory = remotePath.replace(/\/+$/g, "") || "/";
+    if (!remoteKind) {
+      if (!options.createDirectories) {
+        throw new TransferError(`Remote destination directory does not exist: ${remoteDirectory}`, {
+          context: { remotePath }
+        });
+      }
+      await this.transport.mkdir(remoteDirectory, true);
+    }
+
+    const destinationFile = remoteJoin(
+      remoteDirectory,
+      path.basename(resolveLocalPath(options.localPath))
+    );
+    await this.assertRemoteOverwrite(destinationFile, options.overwrite);
+    return destinationFile;
   }
 
   private async downloadWithTransport(options: DownloadOptions): Promise<void> {
