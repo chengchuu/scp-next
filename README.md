@@ -5,16 +5,14 @@ The package uses SFTP internally through `ssh2-sftp-client` instead of implement
 
 ## Features
 
-- Upload and download files.
-- Upload and download directories recursively.
-- CLI usage with `<source> <destination>` operands.
-- ESM `import` and CommonJS `require` library usage.
-- Reusable transfer client.
+- Upload and download files or directories recursively.
+- CLI usage with clear `<source> <destination>` operands.
+- ESM `import` and CommonJS `require` support.
 - JSON configuration files, named profiles, and configured jobs.
 - Environment-variable based credentials.
 - Dry-run mode, progress callbacks, timeouts, overwrite control, and destination directory creation.
-- Typed errors with stable error codes.
 - Secret redaction for passwords, passphrases, and private-key contents.
+- Reusable transfer client.
 
 ## Installation
 
@@ -65,26 +63,26 @@ scp-next download /var/log/example.log ./logs/example.log \
 
 ## CLI Options
 
-```text
---host
---port
---username
---password
---private-key
---private-key-file
---passphrase
---config
---profile
---recursive
---overwrite
---create-directories
---dry-run
---timeout
---verbose
---quiet
---help
---version
-```
+| Option | Description |
+| --- | --- |
+| `--host <host>` | SSH server host. |
+| `--port <port>` | SSH server port. Defaults to `22`. |
+| `--username <username>` | SSH username. |
+| `--password <password>` | SSH password. Prefer environment variables, SSH agents, or key files. |
+| `--private-key <privateKey>` | Private-key content. Redacted from logs and errors. |
+| `--private-key-file <privateKeyFile>` | Private-key file path. Supports `~` expansion. |
+| `--passphrase <passphrase>` | Passphrase for an encrypted private key. |
+| `--config <path>` | Explicit configuration file path. |
+| `--profile <name>` | Named server profile from the configuration file. |
+| `--recursive` | Transfer directories recursively. |
+| `--overwrite` | Allow replacing existing destination files. |
+| `--create-directories` | Create missing destination directories when supported. |
+| `--dry-run` | Resolve and validate the operation without connecting or transferring. |
+| `--timeout <milliseconds>` | Connection and operation timeout in milliseconds. |
+| `--verbose` | Print non-sensitive diagnostic details. |
+| `--quiet` | Disable progress and non-error output. |
+| `--help` | Show command help. |
+| `--version` | Show the package version. |
 
 Avoid `--password` when possible because command-line arguments may be visible in shell
 history and process listings. Prefer environment variables, SSH agents, or protected
