@@ -42,14 +42,6 @@ scp-next download <source> <destination> [options]
 scp-next run <job> [source] [destination] [options]
 ```
 
-Terminology is intentionally consistent:
-
-```text
-Operation  Source  Destination
-Upload     Local   Remote
-Download   Remote  Local
-```
-
 CLI commands use `<source> <destination>`. Programmatic upload and download APIs use
 `localPath` and `remotePath`.
 
