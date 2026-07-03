@@ -1,6 +1,6 @@
 {
   "name": "scp-next",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
