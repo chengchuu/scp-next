@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ESNext",
+    "lib": ["es5", "DOM", "ScriptHost", "ESNext"],
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./lib",
+    "rootDir": ".",
+    "importHelpers": true,
+    "strict": true,
+    "noImplicitThis": false,
+    "moduleResolution": "bundler",
+    "paths": {
+      "tslib": ["./node_modules/tslib/tslib.d.ts"],
+      "mazey": ["./node_modules/mazey/lib/index.d.ts"]
+    },
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["global"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./types/**/*.ts"
+  ],
+  "typedocOptions": {
+    "entryPoints": ["./src"],
+    "out": "docs"
+  }
+}

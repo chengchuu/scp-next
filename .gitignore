@@ -1,17 +1,23 @@
-# Output folders
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
-test/unit/coverage
-test/e2e/reports
+dist-dev/
+lib/
+coverage/
+
+# Test reports
+test/unit/coverage/
+test/e2e/reports/
 
 # Cache folders
 .sass-cache/
-undefined/
 temp/
+undefined/
 
 # Editor directories and files
-.idea
-.vscode
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
@@ -19,8 +25,9 @@ temp/
 
 # System files
 .DS_Store
+Thumbs.db
 
-# Local env files
+# Environment configuration files
 .env.local
 .env.*.local
 
@@ -29,3 +36,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 selenium-debug.log*
+
+# Package lock files
+package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
