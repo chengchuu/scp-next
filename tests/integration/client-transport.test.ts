@@ -11,7 +11,7 @@ class MockTransport implements SftpTransport {
   connect = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   close = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   exists = vi.fn<(remotePath: string) => Promise<false | "-" | "d" | "l">>().mockImplementation((remotePath) => {
-    if (remotePath === "/var/www") return Promise.resolve("d");
+    if (remotePath === "/var/www" || remotePath === "/var/www/") return Promise.resolve("d");
     return Promise.resolve(false);
   });
   mkdir = vi.fn<(remotePath: string, recursive?: boolean) => Promise<void>>().mockResolvedValue(undefined);
@@ -75,6 +75,60 @@ describe("ScpNextClientImpl with mock transport", () => {
         transferredBytes: 4,
         percentage: 100
       })
+    );
+  });
+
+  it("uploads a local file into a remote directory destination", async () => {
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-directory-destination");
+    await mkdir(directory, { recursive: true });
+    const localFile = path.join(directory, "README.md");
+    await writeFile(localFile, "readme");
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.upload(localFile, "/var/www/", {
+      overwrite: false
+    });
+
+    expect(transport.uploadFile).toHaveBeenCalledWith(
+      localFile,
+      "/var/www/README.md",
+      expect.any(Function)
+    );
+  });
+
+  it("creates a missing remote directory destination for file uploads when enabled", async () => {
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-create-remote-directory");
+    await mkdir(directory, { recursive: true });
+    const localFile = path.join(directory, "README.md");
+    await writeFile(localFile, "readme");
+    const transport = new MockTransport();
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await client.upload(localFile, "/missing-dir/", {
+      createDirectories: true,
+      overwrite: false
+    });
+
+    expect(transport.mkdir).toHaveBeenCalledWith("/missing-dir", true);
+    expect(transport.uploadFile).toHaveBeenCalledWith(
+      localFile,
+      "/missing-dir/README.md",
+      expect.any(Function)
     );
   });
 });
