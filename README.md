@@ -13,8 +13,7 @@
 [module-image]: https://img.shields.io/badge/module-ESM%20%2B%20CJS-blue
 
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
-The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or
-SFTP protocols manually.
+The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 
 ## Features
 
@@ -45,6 +44,9 @@ scp-next run <job> [source] [destination] [options]
 CLI commands use `<source> <destination>`. Programmatic upload and download APIs use
 `localPath` and `remotePath`.
 
+Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename.
+Use `--create-directories` when a destination directory may be missing.
+
 ## Upload Examples
 
 ```bash
@@ -66,9 +68,8 @@ scp-next upload ./dist /var/www/example \
   --recursive
 ```
 
-Password arguments are convenient, but they may be exposed through shell history and process
-listings. Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared
-or production environments.
+Password arguments are convenient, but they may be exposed through shell history and process listings.
+Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
 
 ## Download Examples
 
@@ -248,8 +249,7 @@ Highest to lowest:
 6. Configured job values
 7. Internal defaults
 
-For `run`, job values are loaded first, then root configuration, selected profile,
-environment variables, explicit positional overrides, and CLI options.
+For `run`, job values are loaded first, then root configuration, selected profile, environment variables, explicit positional overrides, and CLI options.
 
 ## Library Usage
 
@@ -322,23 +322,17 @@ Supported methods:
 
 ## Host Verification
 
-`hostFingerprint` compares the server host key SHA-256 fingerprint. `knownHostsFile`
-supports plain OpenSSH `known_hosts` entries for exact host names. When neither is supplied,
-`scp-next` reads `~/.ssh/known_hosts`. Hashed host names and every OpenSSH marker variant are
-not currently parsed.
+`hostFingerprint` compares the server host key SHA-256 fingerprint. `knownHostsFile` supports plain OpenSSH `known_hosts` entries for exact host names. When neither is supplied, `scp-next` reads `~/.ssh/known_hosts`. Hashed host names and every OpenSSH marker variant are not currently parsed.
 
-`scp-next` fails closed if it cannot establish a host verifier. Use `hostFingerprint` for CI
-or deployments where a known-hosts file is not available.
+`scp-next` fails closed if it cannot establish a host verifier. Use `hostFingerprint` for CI or deployments where a known-hosts file is not available.
 
 ## Progress Reporting
 
-Interactive terminals display concise progress. Progress is disabled with `--quiet` or when
-stderr is not a TTY, which keeps CI logs readable. Library users can pass `onProgress`.
+Interactive terminals display concise progress. Progress is disabled with `--quiet` or when stderr is not a TTY, which keeps CI logs readable. Library users can pass `onProgress`.
 
 ## Dry Run
 
-`--dry-run` resolves configuration and validates local paths and transfer direction without
-connecting to the remote server or modifying local/remote files.
+`--dry-run` resolves configuration and validates local paths and transfer direction without connecting to the remote server or modifying local/remote files.
 
 ```text
 Dry run: upload
@@ -361,8 +355,7 @@ Public typed errors:
 - `FileSystemError`
 - `HostVerificationError`
 
-Each error includes a stable `code`, readable `message`, optional `cause`, and redacted
-non-sensitive context.
+Each error includes a stable `code`, readable `message`, optional `cause`, and redacted non-sensitive context.
 
 ```ts
 import { AuthenticationError, upload } from "scp-next";
@@ -394,8 +387,8 @@ createClient(options: ScpServerOptions): ScpNextClient
 copy(options: CopyOptions): Promise<void>
 ```
 
-Upload and download APIs use explicit `localPath` and `remotePath` names. The optional
-generic `copy()` API accepts typed local/remote endpoint objects.
+Upload and download APIs use explicit `localPath` and `remotePath` names.
+The optional generic `copy()` API accepts typed local/remote endpoint objects.
 
 ## Development
 
@@ -412,11 +405,9 @@ npm pack --dry-run
 
 ## Publishing
 
-The published package includes `dist`, README, license, changelog, and docs. The CLI entry is
-`dist/cli/index.js` and contains a Node.js shebang.
+The published package includes `dist`, README, license, changelog, and docs. The CLI entry is `dist/cli/index.js` and contains a Node.js shebang.
 
 ## Transfer Mechanism
 
-Despite the package name, normal transfers use SFTP through `ssh2-sftp-client`, which is built
-on `ssh2`. This avoids remote shell execution for regular transfers and gives better support
-for progress reporting and recursive directory traversal than shelling out to an SCP command.
+Despite the package name, normal transfers use SFTP through `ssh2-sftp-client`, which is built on `ssh2`.
+This avoids remote shell execution for regular transfers and gives better support for progress reporting and recursive directory traversal than shelling out to an SCP command.

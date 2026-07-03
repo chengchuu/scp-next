@@ -1,4 +1,4 @@
-import { access, mkdir } from "node:fs/promises";
+import { access, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 import { Ssh2SftpTransport } from "./transport.js";
@@ -36,6 +36,26 @@ function mergeOptions<T extends TransferOptions>(
   transferOptions: T | undefined
 ): ScpServerOptions & T {
   return { ...serverOptions, ...(transferOptions ?? {}) } as ScpServerOptions & T;
+}
+
+function hasTrailingPathSeparator(inputPath: string): boolean {
+  return /[\\/]$/.test(inputPath);
+}
+
+function trimmedRemoteDirectory(remotePath: string): string {
+  return remotePath.replace(/\/+$/g, "") || "/";
+}
+
+function remoteBasename(remotePath: string): string {
+  return path.posix.basename(trimmedRemoteDirectory(remotePath));
+}
+
+async function isExistingLocalDirectory(localPath: string): Promise<boolean> {
+  try {
+    return (await stat(localPath)).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 export class ScpNextClientImpl implements ScpNextClient {
@@ -136,24 +156,16 @@ export class ScpNextClientImpl implements ScpNextClient {
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     let completedBytes = 0;
     let completedFiles = 0;
-
-    const destinationExists = await this.transport.exists(remotePath);
-    if (destinationExists && destinationExists !== "d") {
-      throw new TransferError(`Remote destination already exists and is not a directory: ${remotePath}`, {
-        context: { remotePath }
-      });
-    }
-    if (!destinationExists) {
-      if (!options.createDirectories) {
-        throw new TransferError(`Remote destination directory does not exist: ${remotePath}`, {
-          context: { remotePath }
-        });
-      }
-      await this.transport.mkdir(remotePath, true);
-    }
+    const destinationRoot = await this.resolveRemoteDestinationForLocalDirectory(
+      options,
+      remotePath
+    );
 
     for (const file of files) {
-      const destinationFile = remoteJoin(remotePath, file.relativePath.split(path.sep).join("/"));
+      const destinationFile = remoteJoin(
+        destinationRoot,
+        file.relativePath.split(path.sep).join("/")
+      );
       await this.ensureRemoteParent(destinationFile, true);
       await this.assertRemoteOverwrite(destinationFile, options.overwrite);
 
@@ -214,6 +226,48 @@ export class ScpNextClientImpl implements ScpNextClient {
     return destinationFile;
   }
 
+  private async resolveRemoteDestinationForLocalDirectory(
+    options: UploadOptions,
+    remotePath: string
+  ): Promise<string> {
+    const remoteKind = await this.transport.exists(remotePath);
+    const isDirectoryLikeDestination = remoteKind === "d" || remotePath.endsWith("/");
+    const localDirectoryName = path.basename(resolveLocalPath(options.localPath));
+
+    if (remoteKind && remoteKind !== "d") {
+      throw new TransferError(`Remote destination already exists and is not a directory: ${remotePath}`, {
+        context: { remotePath }
+      });
+    }
+
+    if (isDirectoryLikeDestination) {
+      const remoteDirectory = trimmedRemoteDirectory(remotePath);
+      if (!remoteKind) {
+        if (!options.createDirectories) {
+          throw new TransferError(`Remote destination directory does not exist: ${remoteDirectory}`, {
+            context: { remotePath }
+          });
+        }
+        await this.transport.mkdir(remoteDirectory, true);
+      }
+
+      const destinationRoot = remoteJoin(remoteDirectory, localDirectoryName);
+      await this.ensureRemoteDirectory(destinationRoot);
+      return destinationRoot;
+    }
+
+    if (!remoteKind) {
+      if (!options.createDirectories) {
+        throw new TransferError(`Remote destination directory does not exist: ${remotePath}`, {
+          context: { remotePath }
+        });
+      }
+      await this.transport.mkdir(remotePath, true);
+    }
+
+    return remotePath;
+  }
+
   private async downloadWithTransport(options: DownloadOptions): Promise<void> {
     const remotePath = normalizeRemotePath(options.remotePath);
     const remoteKind = await this.transport.exists(remotePath);
@@ -236,7 +290,7 @@ export class ScpNextClientImpl implements ScpNextClient {
   }
 
   private async downloadSingleFile(options: DownloadOptions, remotePath: string): Promise<void> {
-    const localPath = resolveLocalPath(options.localPath);
+    const localPath = await this.resolveLocalDestinationForRemoteFile(options, remotePath);
     await this.assertLocalOverwrite(localPath, options.overwrite);
     if (options.createDirectories) {
       await mkdir(path.dirname(localPath), { recursive: true });
@@ -256,7 +310,7 @@ export class ScpNextClientImpl implements ScpNextClient {
 
   private async downloadDirectory(options: DownloadOptions): Promise<void> {
     const remotePath = normalizeRemotePath(options.remotePath);
-    const localRoot = resolveLocalPath(options.localPath);
+    const localRoot = await this.resolveLocalDestinationForRemoteDirectory(options, remotePath);
     const files = await walkRemoteFiles(this.transport, remotePath);
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
     let completedBytes = 0;
@@ -287,6 +341,54 @@ export class ScpNextClientImpl implements ScpNextClient {
     }
   }
 
+  private async resolveLocalDestinationForRemoteFile(
+    options: DownloadOptions,
+    remotePath: string
+  ): Promise<string> {
+    const localDestination = resolveLocalPath(options.localPath);
+    const isDirectoryLikeDestination =
+      hasTrailingPathSeparator(options.localPath) || (await isExistingLocalDirectory(localDestination));
+
+    if (!isDirectoryLikeDestination) {
+      return localDestination;
+    }
+
+    if (!(await isExistingLocalDirectory(localDestination))) {
+      if (!options.createDirectories) {
+        throw new TransferError(`Local destination directory does not exist: ${localDestination}`, {
+          context: { localPath: options.localPath }
+        });
+      }
+      await mkdir(localDestination, { recursive: true });
+    }
+
+    return path.join(localDestination, remoteBasename(remotePath));
+  }
+
+  private async resolveLocalDestinationForRemoteDirectory(
+    options: DownloadOptions,
+    remotePath: string
+  ): Promise<string> {
+    const localDestination = resolveLocalPath(options.localPath);
+    const isDirectoryLikeDestination =
+      hasTrailingPathSeparator(options.localPath) || (await isExistingLocalDirectory(localDestination));
+
+    if (!isDirectoryLikeDestination) {
+      return localDestination;
+    }
+
+    if (!(await isExistingLocalDirectory(localDestination))) {
+      if (!options.createDirectories) {
+        throw new TransferError(`Local destination directory does not exist: ${localDestination}`, {
+          context: { localPath: options.localPath }
+        });
+      }
+      await mkdir(localDestination, { recursive: true });
+    }
+
+    return path.join(localDestination, remoteBasename(remotePath));
+  }
+
   private async ensureRemoteParent(remotePath: string, createDirectories = false): Promise<void> {
     const parent = remoteDirname(remotePath);
     if (parent === "." || parent === "/") {
@@ -303,6 +405,18 @@ export class ScpNextClientImpl implements ScpNextClient {
       throw new TransferError(`Remote destination parent does not exist: ${parent}`, {
         context: { remotePath }
       });
+    }
+  }
+
+  private async ensureRemoteDirectory(remotePath: string): Promise<void> {
+    const exists = await this.transport.exists(remotePath);
+    if (exists && exists !== "d") {
+      throw new TransferError(`Remote destination already exists and is not a directory: ${remotePath}`, {
+        context: { remotePath }
+      });
+    }
+    if (!exists) {
+      await this.transport.mkdir(remotePath, true);
     }
   }
 
