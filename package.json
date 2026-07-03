@@ -1,7 +1,7 @@
 {
   "name": "scp-next",
   "version": "0.1.0",
-  "description": "A TypeScript CLI and library for secure SSH file transfers using SFTP.",
+  "description": "A SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

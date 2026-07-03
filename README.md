@@ -1,8 +1,7 @@
 # scp-next
 
-`scp-next` is a TypeScript command-line tool and library for secure file transfers over SSH.
-The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or
-SFTP protocols manually.
+`scp-next` is a SCP command-line tool and library for secure file transfers over SSH.
+The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 
 ## Features
 
@@ -43,6 +42,27 @@ Download   Remote  Local
 CLI commands use `<source> <destination>`. Programmatic upload and download APIs use
 `localPath` and `remotePath`.
 
+## Upload Examples
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host example.com \
+  --username deploy \
+  --private-key-file ~/.ssh/id_ed25519 \
+  --recursive \
+  --create-directories
+```
+
+## Download Examples
+
+```bash
+scp-next download /var/log/example.log ./logs/example.log \
+  --host example.com \
+  --username deploy \
+  --private-key-file ~/.ssh/id_ed25519 \
+  --create-directories
+```
+
 ## CLI Options
 
 ```text
@@ -69,27 +89,6 @@ CLI commands use `<source> <destination>`. Programmatic upload and download APIs
 Avoid `--password` when possible because command-line arguments may be visible in shell
 history and process listings. Prefer environment variables, SSH agents, or protected
 private-key files.
-
-## Upload Examples
-
-```bash
-scp-next upload ./dist /var/www/example \
-  --host example.com \
-  --username deploy \
-  --private-key-file ~/.ssh/id_ed25519 \
-  --recursive \
-  --create-directories
-```
-
-## Download Examples
-
-```bash
-scp-next download /var/log/example.log ./logs/example.log \
-  --host example.com \
-  --username deploy \
-  --private-key-file ~/.ssh/id_ed25519 \
-  --create-directories
-```
 
 ## Configuration Files
 
