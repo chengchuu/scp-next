@@ -1,3 +1,7 @@
+import { readFileSync, realpathSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { Command, CommanderError } from "commander";
 
 import { download } from "../client/download.js";
@@ -17,6 +21,29 @@ export interface RunCliOptions {
   handlers?: TransferHandlers;
 }
 
+function readPackageVersion(currentModuleUrl = import.meta.url): string {
+  const currentFile = fileURLToPath(currentModuleUrl);
+  const packageJsonPath = resolve(dirname(currentFile), "..", "..", "package.json");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8")) as { version?: string };
+  return packageJson.version ?? "0.0.0";
+}
+
+export function isCliEntrypoint(
+  currentModuleUrl = import.meta.url,
+  argv: string[] = process.argv
+): boolean {
+  const executedFile = argv[1];
+  if (!executedFile) {
+    return false;
+  }
+
+  try {
+    return realpathSync(fileURLToPath(currentModuleUrl)) === realpathSync(executedFile);
+  } catch {
+    return false;
+  }
+}
+
 export async function runCli(options: RunCliOptions = {}): Promise<number> {
   const output = options.output ?? { stdout: process.stdout, stderr: process.stderr };
   const cwd = options.cwd ?? process.cwd();
@@ -26,7 +53,11 @@ export async function runCli(options: RunCliOptions = {}): Promise<number> {
   program
     .name("scp-next")
     .description("Secure file transfers over SSH using SFTP")
-    .version("0.1.0")
+    .version(readPackageVersion())
+    .configureOutput({
+      writeOut: (message) => output.stdout.write(message),
+      writeErr: (message) => output.stderr.write(message)
+    })
     .showHelpAfterError()
     .exitOverride();
 
@@ -63,7 +94,7 @@ export async function runCli(options: RunCliOptions = {}): Promise<number> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isCliEntrypoint()) {
   void runCli().then((exitCode) => {
     process.exitCode = exitCode;
   });

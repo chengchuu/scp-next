@@ -1,10 +1,17 @@
+import { mkdir, symlink, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import os from "node:os";
 import { Writable } from "node:stream";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { runCli } from "../../src/cli/index.js";
+import { isCliEntrypoint, runCli } from "../../src/cli/index.js";
 import type { DownloadOptions, UploadOptions } from "../../src/types/index.js";
+
+const require = createRequire(import.meta.url);
+const packageJson = require("../../package.json") as { version: string };
 
 class MemoryStream extends Writable {
   output = "";
@@ -17,6 +24,35 @@ class MemoryStream extends Writable {
 }
 
 describe("CLI", () => {
+  it("prints the package version", async () => {
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const exitCode = await runCli({
+      argv: ["node", "scp-next", "--version"],
+      output: { stdout, stderr },
+      handlers: mockHandlers(),
+      cwd: process.cwd()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output.trim()).toBe(packageJson.version);
+  });
+
+  it("recognizes symlinked npm bin paths as the CLI entrypoint", async () => {
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "cli-symlink");
+    const realFile = path.join(directory, "index.js");
+    const linkedFile = path.join(directory, "scp-next");
+    await mkdir(directory, { recursive: true });
+    await writeFile(realFile, "console.log('cli');\n");
+    await symlink(realFile, linkedFile).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "EEXIST") {
+        throw error;
+      }
+    });
+
+    expect(isCliEntrypoint(pathToFileURL(realFile).href, ["node", linkedFile])).toBe(true);
+  });
+
   it("returns readable missing source errors", async () => {
     const stdout = new MemoryStream();
     const stderr = new MemoryStream();
