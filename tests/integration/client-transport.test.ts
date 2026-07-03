@@ -217,7 +217,11 @@ describe("ScpNextClientImpl with mock transport", () => {
   });
 
   it("downloads a remote directory into an existing local directory destination", async () => {
-    const localDirectory = path.join(os.tmpdir(), "scp-next-tests", "client-download-directory");
+    const localDirectory = path.join(
+      os.tmpdir(),
+      "scp-next-tests",
+      `client-download-directory-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    );
     await mkdir(localDirectory, { recursive: true });
     const transport = new MockTransport();
     const client = new ScpNextClientImpl(

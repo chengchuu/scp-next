@@ -58,6 +58,23 @@ async function isExistingLocalDirectory(localPath: string): Promise<boolean> {
   }
 }
 
+async function ensureLocalDirectory(localPath: string, createParents = false): Promise<void> {
+  try {
+    const stats = await stat(localPath);
+    if (stats.isDirectory()) {
+      return;
+    }
+    throw new TransferError(`Local destination already exists and is not a directory: ${localPath}`, {
+      context: { localPath }
+    });
+  } catch (error) {
+    if (error instanceof TransferError) {
+      throw error;
+    }
+    await mkdir(localPath, { recursive: createParents });
+  }
+}
+
 export class ScpNextClientImpl implements ScpNextClient {
   private readonly serverOptions: ScpServerOptions;
   private readonly transport: SftpTransport;
@@ -316,7 +333,7 @@ export class ScpNextClientImpl implements ScpNextClient {
     let completedBytes = 0;
     let completedFiles = 0;
 
-    await mkdir(localRoot, { recursive: Boolean(options.createDirectories) });
+    await ensureLocalDirectory(localRoot, Boolean(options.createDirectories));
 
     for (const file of files) {
       const localFile = path.join(localRoot, ...file.relativePath.split("/"));
