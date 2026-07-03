@@ -1,10 +1,10 @@
 # scp-next
 
 [![npm version][npm-image]][npm-url]
-[![l][l-image]][l-url]
+[![license][l-image]][l-url]
 
 [npm-image]: https://img.shields.io/npm/v/scp-next
-[npm-url]: https://npmjs.org/package/scp-next
+[npm-url]: https://www.npmjs.com/package/scp-next
 [l-image]: https://img.shields.io/npm/l/scp-next
 [l-url]: https://github.com/chengchuu/scp-next
 
