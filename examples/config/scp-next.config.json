@@ -1,0 +1,21 @@
+{
+  "defaultProfile": "production",
+  "profiles": {
+    "production": {
+      "host": "production.example.com",
+      "username": "deploy",
+      "privateKeyFile": "~/.ssh/id_ed25519"
+    }
+  },
+  "jobs": {
+    "deploy": {
+      "operation": "upload",
+      "profile": "production",
+      "source": "./dist",
+      "destination": "/var/www/example",
+      "recursive": true,
+      "overwrite": true,
+      "createDirectories": true
+    }
+  }
+}

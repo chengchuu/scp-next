@@ -1,46 +1,86 @@
 {
-  "name": "mazey-scp-cli",
+  "name": "scp-next",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "bin": {
-    "notify": "bin.js"
+  "description": "A SCP CLI and library for secure SSH file transfers using SFTP.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
   },
-  "scripts": {
-    "lint-and-fix": "eslint index.js  --fix"
+  "bin": {
+    "scp-next": "./dist/cli/index.js"
   },
   "files": [
-		"cli.js"
-	],
-  "keywords": [
-    "cli-app",
-    "cli"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs"
   ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rimraf dist coverage",
+    "dev": "tsx src/cli/index.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run typecheck && npm run lint && npm test && npm run build"
+  },
+  "keywords": [
+    "scp",
+    "sftp",
+    "ssh",
+    "transfer",
+    "cli",
+    "typescript"
+  ],
+  "author": {
+    "name": "Cheng",
+    "email": "mazeyqian@gmail.com",
+    "url": "https://github.com/chengchuu"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chengchuu/mazey-scp-cli.git"
+    "url": "git+https://github.com/chengchuu/scp-next.git"
   },
-  "author": {
-		"name": "Cheng",
-		"email": "mazeyqian@gmail.com",
-		"url": "https://github.com/chengchuu"
-	},
-  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/chengchuu/mazey-scp-cli/issues"
+    "url": "https://github.com/chengchuu/scp-next/issues"
   },
-  "homepage": "https://github.com/chengchuu/mazey-scp-cli#readme",
-  "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-semistandard": "^15.0.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+  "homepage": "https://github.com/chengchuu/scp-next#readme",
+  "engines": {
+    "node": ">=18.18.0"
   },
   "dependencies": {
-    "meow": "^10.1.3",
-    "scp2": "^0.5.0"
+    "commander": "^12.1.0",
+    "ssh2-sftp-client": "^11.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

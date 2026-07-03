@@ -1,39 +1,12 @@
-# Folders
-build/
-node_modules/
-test/
-doc/
-docs/
-undefined/
-temp/
-
-# .
-.idea
+src
+tests
+examples
+coverage
+node_modules
+.github
 .vscode
-.editorconfig
-.eslintignore
-.lintstagedrc
-.prettierignore
-.prettierrc
-.eslintrc.js
-.babelrc
-.eslintrc
-
-# *
-*.yml
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# Files
-yarn.lock
-yarn-error.log
-package-lock.json
-api-extractor.json
-commitlint.config.js
-rollup.config.js
-webpack.config.js
-jsdoc.config.json
+*.log
+tsup.config.ts
+vitest.config.ts
+eslint.config.js
 tsconfig.json
-typing.d.ts

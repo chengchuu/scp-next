@@ -1,0 +1,305 @@
+import { access, mkdir } from "node:fs/promises";
+import path from "node:path";
+
+import { Ssh2SftpTransport } from "./transport.js";
+import type { SftpTransport } from "./transport.js";
+import { walkLocalFiles, walkRemoteFiles } from "./walk.js";
+import { TransferError, ValidationError } from "../errors/index.js";
+import { getLocalPathKind, resolveLocalPath } from "../paths/local-path.js";
+import { normalizeRemotePath, remoteDirname, remoteJoin } from "../paths/remote-path.js";
+import type {
+  DownloadOptions,
+  ScpNextClient,
+  ScpServerOptions,
+  TransferOptions,
+  UploadOptions
+} from "../types/index.js";
+import {
+  validateDownloadOptions,
+  validateServerOptions,
+  validateUploadOptions
+} from "../config/validation.js";
+
+export interface ScpNextClientDependencies {
+  transport?: SftpTransport;
+}
+
+function percentage(transferredBytes: number, totalBytes?: number): number | undefined {
+  if (!totalBytes || totalBytes <= 0) {
+    return undefined;
+  }
+  return Math.min(100, Math.round((transferredBytes / totalBytes) * 100));
+}
+
+function mergeOptions<T extends TransferOptions>(
+  serverOptions: ScpServerOptions,
+  transferOptions: T | undefined
+): ScpServerOptions & T {
+  return { ...serverOptions, ...(transferOptions ?? {}) } as ScpServerOptions & T;
+}
+
+export class ScpNextClientImpl implements ScpNextClient {
+  private readonly serverOptions: ScpServerOptions;
+  private readonly transport: SftpTransport;
+  private connected = false;
+
+  constructor(serverOptions: ScpServerOptions, dependencies: ScpNextClientDependencies = {}) {
+    this.serverOptions = serverOptions;
+    this.transport = dependencies.transport ?? new Ssh2SftpTransport();
+  }
+
+  async connect(): Promise<void> {
+    await validateServerOptions(this.serverOptions);
+    await this.transport.connect(this.serverOptions);
+    this.connected = true;
+  }
+
+  async upload(
+    localPath: string,
+    remotePath: string,
+    options: TransferOptions = {}
+  ): Promise<void> {
+    const uploadOptions: UploadOptions = {
+      ...mergeOptions(this.serverOptions, options),
+      localPath,
+      remotePath
+    };
+    await validateUploadOptions(uploadOptions);
+
+    if (options.dryRun) {
+      return;
+    }
+
+    await this.ensureConnected();
+    await this.uploadWithTransport(uploadOptions);
+  }
+
+  async download(
+    remotePath: string,
+    localPath: string,
+    options: TransferOptions = {}
+  ): Promise<void> {
+    const downloadOptions: DownloadOptions = {
+      ...mergeOptions(this.serverOptions, options),
+      remotePath,
+      localPath
+    };
+    await validateDownloadOptions(downloadOptions);
+
+    if (options.dryRun) {
+      return;
+    }
+
+    await this.ensureConnected();
+    await this.downloadWithTransport(downloadOptions);
+  }
+
+  async close(): Promise<void> {
+    if (this.connected) {
+      await this.transport.close();
+      this.connected = false;
+    }
+  }
+
+  private async ensureConnected(): Promise<void> {
+    if (!this.connected) {
+      await this.connect();
+    }
+  }
+
+  private async uploadWithTransport(options: UploadOptions): Promise<void> {
+    const localKind = await getLocalPathKind(options.localPath);
+    const remotePath = normalizeRemotePath(options.remotePath);
+
+    if (localKind === "directory" && !options.recursive) {
+      throw new ValidationError("Uploading a directory requires recursive mode.");
+    }
+
+    if (localKind === "file") {
+      await this.ensureRemoteParent(remotePath, options.createDirectories);
+      await this.assertRemoteOverwrite(remotePath, options.overwrite);
+      const totalBytes = undefined;
+      await this.transport.uploadFile(resolveLocalPath(options.localPath), remotePath, (step) => {
+        options.onProgress?.({
+          operation: "upload",
+          source: options.localPath,
+          destination: options.remotePath,
+          transferredBytes: step.transferredBytes,
+          totalBytes: step.totalBytes || totalBytes,
+          percentage: percentage(step.transferredBytes, step.totalBytes),
+          currentFile: options.localPath
+        });
+      });
+      return;
+    }
+
+    const files = await walkLocalFiles(options.localPath);
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    let completedBytes = 0;
+    let completedFiles = 0;
+
+    const destinationExists = await this.transport.exists(remotePath);
+    if (destinationExists && destinationExists !== "d") {
+      throw new TransferError(`Remote destination already exists and is not a directory: ${remotePath}`, {
+        context: { remotePath }
+      });
+    }
+    if (!destinationExists) {
+      if (!options.createDirectories) {
+        throw new TransferError(`Remote destination directory does not exist: ${remotePath}`, {
+          context: { remotePath }
+        });
+      }
+      await this.transport.mkdir(remotePath, true);
+    }
+
+    for (const file of files) {
+      const destinationFile = remoteJoin(remotePath, file.relativePath.split(path.sep).join("/"));
+      await this.ensureRemoteParent(destinationFile, true);
+      await this.assertRemoteOverwrite(destinationFile, options.overwrite);
+
+      await this.transport.uploadFile(file.absolutePath, destinationFile, (step) => {
+        const transferredBytes = completedBytes + step.transferredBytes;
+        options.onProgress?.({
+          operation: "upload",
+          source: options.localPath,
+          destination: options.remotePath,
+          transferredBytes,
+          totalBytes,
+          percentage: percentage(transferredBytes, totalBytes),
+          currentFile: file.relativePath,
+          completedFiles,
+          totalFiles: files.length
+        });
+      });
+
+      completedBytes += file.size;
+      completedFiles += 1;
+    }
+  }
+
+  private async downloadWithTransport(options: DownloadOptions): Promise<void> {
+    const remotePath = normalizeRemotePath(options.remotePath);
+    const remoteKind = await this.transport.exists(remotePath);
+
+    if (!remoteKind) {
+      throw new TransferError(`Remote path does not exist: ${options.remotePath}`, {
+        context: { remotePath: options.remotePath }
+      });
+    }
+
+    if (remoteKind === "d") {
+      if (!options.recursive) {
+        throw new ValidationError("Downloading a directory requires recursive mode.");
+      }
+      await this.downloadDirectory(options);
+      return;
+    }
+
+    await this.downloadSingleFile(options, remotePath);
+  }
+
+  private async downloadSingleFile(options: DownloadOptions, remotePath: string): Promise<void> {
+    const localPath = resolveLocalPath(options.localPath);
+    await this.assertLocalOverwrite(localPath, options.overwrite);
+    if (options.createDirectories) {
+      await mkdir(path.dirname(localPath), { recursive: true });
+    }
+    await this.transport.downloadFile(remotePath, localPath, (step) => {
+      options.onProgress?.({
+        operation: "download",
+        source: options.remotePath,
+        destination: options.localPath,
+        transferredBytes: step.transferredBytes,
+        totalBytes: step.totalBytes,
+        percentage: percentage(step.transferredBytes, step.totalBytes),
+        currentFile: options.remotePath
+      });
+    });
+  }
+
+  private async downloadDirectory(options: DownloadOptions): Promise<void> {
+    const remotePath = normalizeRemotePath(options.remotePath);
+    const localRoot = resolveLocalPath(options.localPath);
+    const files = await walkRemoteFiles(this.transport, remotePath);
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    let completedBytes = 0;
+    let completedFiles = 0;
+
+    await mkdir(localRoot, { recursive: Boolean(options.createDirectories) });
+
+    for (const file of files) {
+      const localFile = path.join(localRoot, ...file.relativePath.split("/"));
+      await this.assertLocalOverwrite(localFile, options.overwrite);
+      await mkdir(path.dirname(localFile), { recursive: true });
+      await this.transport.downloadFile(file.remotePath, localFile, (step) => {
+        const transferredBytes = completedBytes + step.transferredBytes;
+        options.onProgress?.({
+          operation: "download",
+          source: options.remotePath,
+          destination: options.localPath,
+          transferredBytes,
+          totalBytes,
+          percentage: percentage(transferredBytes, totalBytes),
+          currentFile: file.relativePath,
+          completedFiles,
+          totalFiles: files.length
+        });
+      });
+      completedBytes += file.size;
+      completedFiles += 1;
+    }
+  }
+
+  private async ensureRemoteParent(remotePath: string, createDirectories = false): Promise<void> {
+    const parent = remoteDirname(remotePath);
+    if (parent === "." || parent === "/") {
+      return;
+    }
+
+    if (createDirectories) {
+      await this.transport.mkdir(parent, true);
+      return;
+    }
+
+    const exists = await this.transport.exists(parent);
+    if (exists !== "d") {
+      throw new TransferError(`Remote destination parent does not exist: ${parent}`, {
+        context: { remotePath }
+      });
+    }
+  }
+
+  private async assertRemoteOverwrite(remotePath: string, overwrite = false): Promise<void> {
+    if (overwrite) {
+      return;
+    }
+    const exists = await this.transport.exists(remotePath);
+    if (exists) {
+      throw new TransferError(`Remote destination already exists: ${remotePath}`, {
+        context: { remotePath }
+      });
+    }
+  }
+
+  private async assertLocalOverwrite(localPath: string, overwrite = false): Promise<void> {
+    if (overwrite) {
+      return;
+    }
+
+    try {
+      await access(localPath);
+      throw new TransferError(`Local destination already exists: ${localPath}`, {
+        context: { localPath }
+      });
+    } catch (error) {
+      if (error instanceof TransferError) {
+        throw error;
+      }
+    }
+  }
+}
+
+export function createClient(options: ScpServerOptions): ScpNextClient {
+  return new ScpNextClientImpl(options);
+}

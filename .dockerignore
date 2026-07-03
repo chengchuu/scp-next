@@ -1,0 +1,26 @@
+# Git
+**/.git
+**/.gitignore
+
+# Node.js
+**/node_modules
+**/npm-debug.log
+
+# Cache & System Files
+**/.DS_Store
+**/Thumbs.db
+**/.vscode
+**/.idea
+**/.cache
+**/tmp
+
+# Docs
+**/documents/**/*.md
+**/documents/**/*.txt
+
+# Cert
+**/cert/**/*.key
+**/cert/**/*.pem
+
+# Archives
+**/*.tar.gz
