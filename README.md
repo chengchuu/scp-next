@@ -64,6 +64,20 @@ scp-next upload ./dist /var/www/example \
   --create-directories
 ```
 
+Password authentication:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host example.com \
+  --username deploy \
+  --password "your-password" \
+  --recursive
+```
+
+Password arguments are convenient, but they may be exposed through shell history and process
+listings. Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared
+or production environments.
+
 ## Download Examples
 
 ```bash
@@ -96,10 +110,6 @@ scp-next download /var/log/example.log ./logs/example.log \
 | `--quiet`                             | Disable progress and non-error output.                                 |
 | `--help`                              | Show command help.                                                     |
 | `--version`                           | Show the package version.                                              |
-
-Avoid `--password` when possible because command-line arguments may be visible in shell
-history and process listings. Prefer environment variables, SSH agents, or protected
-private-key files.
 
 ## Configuration Files
 
