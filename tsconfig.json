@@ -16,7 +16,6 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "types": ["node", "vitest/globals"],
-    "baseUrl": ".",
     "paths": {
       "scp-next": ["./src/index.ts"]
     }
