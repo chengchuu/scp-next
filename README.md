@@ -17,7 +17,6 @@
 
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
 The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
-
 Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 
 ## Features
@@ -26,15 +25,18 @@ Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 - CLI usage with clear `<source> <destination>` operands.
 - ESM `import` and CommonJS `require` support.
 - JSON configuration files, named profiles, and configured jobs.
-- Environment-variable-based credentials.
-- Dry-run mode, progress callbacks, timeouts, overwrite control, and destination directory creation.
-- Secret redaction for passwords, passphrases, and private-key contents.
-- Reusable transfer client.
 
 ## Installation
 
+CLI:
+
 ```bash
 npm install --global scp-next
+```
+
+Library:
+
+```bash
 npm install scp-next
 ```
 
