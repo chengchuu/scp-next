@@ -10,7 +10,6 @@ export default tseslint.config(
       "node_modules/**",
       "temp/**",
       "scripts/**",
-      "commitlint.config.js",
       "examples/commonjs/**"
     ]
   },
