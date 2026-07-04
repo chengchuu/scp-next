@@ -58,6 +58,9 @@ export async function runCli(options: RunCliOptions = {}): Promise<number> {
       writeOut: (message) => output.stdout.write(message),
       writeErr: (message) => output.stderr.write(message)
     })
+    .configureHelp({
+      subcommandTerm: (command) => `${command.name()} ${command.usage()}`
+    })
     .showHelpAfterError()
     .exitOverride();
 

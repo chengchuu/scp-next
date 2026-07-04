@@ -23,6 +23,10 @@ Download   Remote  Local
 ```
 
 - CLI commands use positional operands named `<source> <destination>`.
+- CLI usage/help should show operands before options:
+  - `scp-next upload <source> <destination> [options]`
+  - `scp-next download <source> <destination> [options]`
+  - `scp-next run <job> [source] [destination] [options]`
 - Programmatic upload/download APIs use `localPath` and `remotePath`.
 - Configured transfer jobs use `source` and `destination`.
 - Do not introduce aliases such as `from`, `to`, `input`, `output`, or `target`.
@@ -71,6 +75,15 @@ Highest to lowest:
 7. Internal defaults
 
 When changing precedence, update tests and README documentation together.
+
+## CLI Defaults
+
+- `--recursive` is opt-in and defaults to `false`.
+- Destination directory creation defaults to enabled for daily `cp`/`scp`-style usage.
+- Keep `--create-directories` as the affirmative flag for explicitness.
+- Keep `--no-create-directories` as the opt-out flag; do not accept string boolean forms such as
+  `--create-directories false`.
+- Keep root help and command help aligned with the usage strings above.
 
 ## Public API Expectations
 

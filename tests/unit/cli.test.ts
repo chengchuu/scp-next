@@ -38,6 +38,24 @@ describe("CLI", () => {
     expect(stdout.output.trim()).toBe(packageJson.version);
   });
 
+  it("shows source and destination before options in root help", async () => {
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const exitCode = await runCli({
+      argv: ["node", "scp-next", "--help"],
+      output: { stdout, stderr },
+      handlers: mockHandlers(),
+      cwd: process.cwd()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output).toContain("upload <source> <destination> [options]");
+    expect(stdout.output).not.toContain("upload [options] [source] [destination]");
+    expect(stdout.output).toContain("download <source> <destination> [options]");
+    expect(stdout.output).not.toContain("download [options] [source] [destination]");
+    expect(stdout.output).toContain("run <job> [source] [destination] [options]");
+  });
+
   it("recognizes symlinked npm bin paths as the CLI entrypoint", async () => {
     const directory = path.join(os.tmpdir(), "scp-next-tests", "cli-symlink");
     const realFile = path.join(directory, "index.js");
