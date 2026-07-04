@@ -16,7 +16,7 @@
 [docs-url]: https://chengchuu.github.io/scp-next/
 
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
-The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
+It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 
 ## Features
@@ -25,6 +25,7 @@ Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 - CLI usage with clear `<source> <destination>` operands.
 - ESM `import` and CommonJS `require` support.
 - JSON configuration files, named profiles, and configured jobs.
+- Reusable transfer client.
 
 ## Installation
 
@@ -40,7 +41,46 @@ Library:
 npm install scp-next
 ```
 
-## CLI Syntax
+## Quick Start
+
+Upload a directory:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --private-key-file ~/.ssh/id_ed25519 \
+  --recursive
+```
+
+Download a file:
+
+```bash
+scp-next download /var/log/example.log ./logs/example.log \
+  --host your-host \
+  --username your-username \
+  --private-key-file ~/.ssh/id_ed25519
+```
+
+Use the library:
+
+```ts
+import { upload } from "scp-next";
+
+await upload({
+  host: process.env.SCP_NEXT_HOST,
+  username: process.env.SCP_NEXT_USERNAME,
+  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  localPath: "./dist",
+  remotePath: "/var/www/example",
+  recursive: true,
+  overwrite: true
+});
+```
+
+## Basic Usage
+
+### CLI Syntax
 
 ```text
 scp-next upload <source> <destination> [options]
@@ -51,14 +91,21 @@ scp-next run <job> [source] [destination] [options]
 CLI commands use `<source> <destination>`. Programmatic upload and download APIs use
 `localPath` and `remotePath`.
 
+| Operation | Source | Destination |
+| --------- | ------ | ----------- |
+| Upload    | Local  | Remote      |
+| Download  | Remote | Local       |
+
 Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename. Missing destination directories are created by default.
 
-## Upload Examples
+### Upload Examples
+
+Private-key authentication:
 
 ```bash
 scp-next upload ./dist /var/www/example \
-  --host example.com \
-  --username deploy \
+  --host your-host \
+  --username your-username \
   --private-key-file ~/.ssh/id_ed25519 \
   --recursive
 ```
@@ -67,25 +114,25 @@ Password authentication:
 
 ```bash
 scp-next upload ./dist /var/www/example \
-  --host example.com \
-  --username deploy \
-  --password "your-password" \
+  --host your-host \
+  --username your-username \
+  --password your-password \
   --recursive
 ```
 
 Password arguments are convenient, but they may be exposed through shell history and process listings.
 Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
 
-## Download Examples
+### Download Examples
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
-  --host example.com \
-  --username deploy \
+  --host your-host \
+  --username your-username \
   --private-key-file ~/.ssh/id_ed25519
 ```
 
-## CLI Options
+### CLI Options
 
 | Option                                | Description                                                            |
 | ------------------------------------- | ---------------------------------------------------------------------- |
@@ -109,7 +156,68 @@ scp-next download /var/log/example.log ./logs/example.log \
 | `--help`                              | Show command help.                                                     |
 | `--version`                           | Show the package version.                                              |
 
-## Configuration Files
+## Library Usage
+
+### ESM Upload
+
+```ts
+import { upload } from "scp-next";
+
+await upload({
+  host: process.env.SCP_NEXT_HOST,
+  username: process.env.SCP_NEXT_USERNAME,
+  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  localPath: "./dist",
+  remotePath: "/var/www/example",
+  recursive: true,
+  overwrite: true
+});
+```
+
+### CommonJS Download
+
+```js
+const { download } = require("scp-next");
+
+async function main() {
+  await download({
+    host: process.env.SCP_NEXT_HOST,
+    username: process.env.SCP_NEXT_USERNAME,
+    privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+    remotePath: "/var/log/example.log",
+    localPath: "./logs/example.log"
+  });
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
+```
+
+### Reusable Client
+
+```ts
+import { createClient } from "scp-next";
+
+const client = createClient({
+  host: process.env.SCP_NEXT_HOST,
+  username: process.env.SCP_NEXT_USERNAME,
+  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE
+});
+
+try {
+  await client.connect();
+  await client.upload("./dist", "/var/www/example", { recursive: true });
+  await client.download("/var/log/example.log", "./logs/example.log");
+} finally {
+  await client.close();
+}
+```
+
+## Advanced Usage
+
+### Configuration Files
 
 `scp-next` searches for these files in the current directory:
 
@@ -130,9 +238,9 @@ Example:
 ```json
 {
   "server": {
-    "host": "example.com",
+    "host": "your-host",
     "port": 22,
-    "username": "deploy",
+    "username": "your-username",
     "privateKeyFile": "~/.ssh/id_ed25519"
   },
   "transfer": {
@@ -144,22 +252,22 @@ Example:
 }
 ```
 
-## Named Profiles
+### Named Profiles
 
 ```json
 {
   "defaultProfile": "production",
   "profiles": {
     "production": {
-      "host": "production.example.com",
+      "host": "your-host-a",
       "port": 22,
-      "username": "deploy",
+      "username": "your-username-a",
       "privateKeyFile": "~/.ssh/id_ed25519"
     },
     "staging": {
-      "host": "staging.example.com",
+      "host": "your-host-b",
       "port": 22,
-      "username": "deploy",
+      "username": "your-username-b",
       "privateKeyFile": "~/.ssh/id_ed25519"
     }
   }
@@ -170,7 +278,7 @@ Example:
 scp-next upload ./dist /var/www/example --profile production
 ```
 
-## Configured Jobs
+### Configured Jobs
 
 Jobs use `source` and `destination`; the `operation` determines which path is local or remote.
 
@@ -178,8 +286,8 @@ Jobs use `source` and `destination`; the `operation` determines which path is lo
 {
   "profiles": {
     "production": {
-      "host": "production.example.com",
-      "username": "deploy",
+      "host": "your-host",
+      "username": "your-username",
       "privateKeyFile": "~/.ssh/id_ed25519"
     }
   },
@@ -210,7 +318,7 @@ scp-next run download-logs
 
 `scp-next run <job> [source] [destination]` permits explicit path overrides.
 
-## Environment Variables
+### Environment Variables
 
 ```text
 SCP_NEXT_HOST
@@ -227,8 +335,8 @@ SCP_NEXT_PROFILE
 Bash:
 
 ```bash
-export SCP_NEXT_HOST="example.com"
-export SCP_NEXT_USERNAME="deploy"
+export SCP_NEXT_HOST="your-host"
+export SCP_NEXT_USERNAME="your-username"
 export SCP_NEXT_PRIVATE_KEY_FILE="$HOME/.ssh/id_ed25519"
 scp-next upload ./dist /var/www/example --recursive
 ```
@@ -236,13 +344,13 @@ scp-next upload ./dist /var/www/example --recursive
 PowerShell:
 
 ```powershell
-$env:SCP_NEXT_HOST = "example.com"
-$env:SCP_NEXT_USERNAME = "deploy"
+$env:SCP_NEXT_HOST = "your-host"
+$env:SCP_NEXT_USERNAME = "your-username"
 $env:SCP_NEXT_PRIVATE_KEY_FILE = "$HOME\.ssh\id_ed25519"
 scp-next upload .\dist /var/www/example --recursive
 ```
 
-## Configuration Precedence
+### Configuration Precedence
 
 Highest to lowest:
 
@@ -256,66 +364,7 @@ Highest to lowest:
 
 For `run`, job values are loaded first, then root configuration, selected profile, environment variables, explicit positional overrides, and CLI options.
 
-## Library Usage
-
-ESM upload:
-
-```ts
-import { upload } from "scp-next";
-
-await upload({
-  host: process.env.SCP_NEXT_HOST,
-  username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
-  localPath: "./dist",
-  remotePath: "/var/www/example",
-  recursive: true,
-  overwrite: true
-});
-```
-
-CommonJS download:
-
-```js
-const { download } = require("scp-next");
-
-async function main() {
-  await download({
-    host: process.env.SCP_NEXT_HOST,
-    username: process.env.SCP_NEXT_USERNAME,
-    privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
-    remotePath: "/var/log/example.log",
-    localPath: "./logs/example.log"
-  });
-}
-
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
-```
-
-Reusable client:
-
-```ts
-import { createClient } from "scp-next";
-
-const client = createClient({
-  host: process.env.SCP_NEXT_HOST,
-  username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE
-});
-
-try {
-  await client.connect();
-  await client.upload("./dist", "/var/www/example", { recursive: true });
-  await client.download("/var/log/example.log", "./logs/example.log");
-} finally {
-  await client.close();
-}
-```
-
-## Authentication
+### Authentication
 
 Supported methods:
 
@@ -325,24 +374,24 @@ Supported methods:
 - Private-key passphrase
 - SSH agent authentication through `agent` or `SSH_AUTH_SOCK`
 
-## Host Verification
+### Host Verification
 
 `hostFingerprint` compares the server host key SHA-256 fingerprint. `knownHostsFile` supports plain OpenSSH `known_hosts` entries for exact host names. When neither is supplied, `scp-next` reads `~/.ssh/known_hosts`. Hashed host names and every OpenSSH marker variant are not currently parsed.
 
 `scp-next` fails closed if it cannot establish a host verifier. Use `hostFingerprint` for CI or deployments where a known-hosts file is not available.
 
-## Progress Reporting
+### Progress Reporting
 
 Interactive terminals display concise progress. Progress is disabled with `--quiet` or when stderr is not a TTY, which keeps CI logs readable. Library users can pass `onProgress`.
 
-## Dry Run
+### Dry Run
 
 `--dry-run` resolves configuration and validates local paths and transfer direction without connecting to the remote server or modifying local/remote files.
 
 ```text
 Dry run: upload
 Source: ./dist
-Destination: deploy@example.com:/var/www/example
+Destination: your-username@your-host:/var/www/example
 Recursive: yes
 Overwrite: yes
 ```
