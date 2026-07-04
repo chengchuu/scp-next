@@ -49,7 +49,7 @@ Upload a directory:
 scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519 \
+  --password your-password \
   --recursive
 ```
 
@@ -100,8 +100,6 @@ Destination paths follow familiar `cp`/`scp` behavior. If the destination exists
 
 ### Upload Examples
 
-Private-key authentication:
-
 ```bash
 scp-next upload ./dist /var/www/example \
   --host your-host \
@@ -109,19 +107,6 @@ scp-next upload ./dist /var/www/example \
   --private-key-file ~/.ssh/id_ed25519 \
   --recursive
 ```
-
-Password authentication:
-
-```bash
-scp-next upload ./dist /var/www/example \
-  --host your-host \
-  --username your-username \
-  --password your-password \
-  --recursive
-```
-
-Password arguments are convenient, but they may be exposed through shell history and process listings.
-Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
 
 ### Download Examples
 
