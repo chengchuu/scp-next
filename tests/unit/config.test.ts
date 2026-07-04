@@ -67,6 +67,30 @@ describe("configuration loading and precedence", () => {
     expect(resolved.createDirectories).toBe(false);
   });
 
+  it("repairs upload remote destinations rewritten by Git Bash on Windows", () => {
+    const resolved = resolveTransferConfig({
+      operation: "upload",
+      source: "./README.md",
+      destination: "C:/Program Files/Git/web-test-26-0703/T01.md",
+      cwd: "/workspace"
+    });
+
+    expect(resolved.source).toBe(path.resolve("/workspace", "./README.md"));
+    expect(resolved.destination).toBe("/web-test-26-0703/T01.md");
+  });
+
+  it("repairs download remote sources rewritten by Git Bash on Windows", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "C:/Program Files/Git/var/log/example.log",
+      destination: "./example.log",
+      cwd: "/workspace"
+    });
+
+    expect(resolved.source).toBe("/var/log/example.log");
+    expect(resolved.destination).toBe(path.resolve("/workspace", "./example.log"));
+  });
+
   it("uses configured jobs with canonical source and destination", () => {
     const resolved = resolveTransferConfig({
       jobName: "deploy",

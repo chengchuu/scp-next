@@ -15,6 +15,15 @@ export function normalizeRemotePath(inputPath: string): string {
   return path.posix.normalize(inputPath.replace(/\\/g, "/"));
 }
 
+export function restoreMsysConvertedRemotePath(inputPath: string): string {
+  const normalized = inputPath.replace(/\\/g, "/");
+  const match = /^[A-Za-z]:\/(?:Program Files\/Git|Program Files \(x86\)\/Git|Git|msys64)\/(.+)$/i.exec(
+    normalized
+  );
+
+  return match ? `/${match[1]}` : inputPath;
+}
+
 export function remoteJoin(...parts: string[]): string {
   const joined = path.posix.join(...parts);
   assertRemotePath(joined);

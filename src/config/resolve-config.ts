@@ -12,6 +12,7 @@ import type {
   TransferOptions
 } from "../types/index.js";
 import { resolveLocalPath } from "../paths/local-path.js";
+import { restoreMsysConvertedRemotePath } from "../paths/remote-path.js";
 
 export interface CliTransferOptions extends ScpServerOptions, Omit<TransferOptions, "onProgress"> {
   profile?: string | undefined;
@@ -170,6 +171,14 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
 
   if (input.source && operation === "upload") {
     pathResolved.source = resolveLocalPath(input.source, cwd);
+  }
+
+  if (operation === "upload") {
+    pathResolved.destination = restoreMsysConvertedRemotePath(pathResolved.destination);
+  }
+
+  if (operation === "download") {
+    pathResolved.source = restoreMsysConvertedRemotePath(pathResolved.source);
   }
 
   if (input.destination && operation === "download") {
