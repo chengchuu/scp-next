@@ -70,6 +70,9 @@ scp-next download /var/log/example.log ./logs/example.log \
   --password your-password
 ```
 
+Password arguments are convenient, but they may be exposed through shell history and process listings.
+Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
+
 Use the library:
 
 ```ts
@@ -298,6 +301,8 @@ Example:
 }
 ```
 
+Do not commit configuration files containing real passwords. Prefer `SCP_NEXT_PASSWORD` or another protected secret source for shared repositories and deployment environments.
+
 Configuration file options:
 
 | Key              | Description                                                         |
@@ -396,7 +401,7 @@ Bash:
 ```bash
 export SCP_NEXT_HOST="your-host"
 export SCP_NEXT_USERNAME="your-username"
-export SCP_NEXT_PRIVATE_KEY_FILE="$HOME/.ssh/id_ed25519"
+export SCP_NEXT_PASSWORD="your-password"
 scp-next upload ./dist /var/www/example --recursive
 ```
 
@@ -405,7 +410,7 @@ PowerShell:
 ```powershell
 $env:SCP_NEXT_HOST = "your-host"
 $env:SCP_NEXT_USERNAME = "your-username"
-$env:SCP_NEXT_PRIVATE_KEY_FILE = "$HOME\.ssh\id_ed25519"
+$env:SCP_NEXT_PASSWORD = "your-password"
 scp-next upload .\dist /var/www/example --recursive
 ```
 
