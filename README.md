@@ -282,12 +282,10 @@ await upload({
 
 ### Configuration Files
 
-`scp-next` searches for these files in the current directory:
+Use `scp-next.config.json` in the current directory. `scp-next` also auto-detects these rc-style filenames: `.scp-nextrc`, `.scp-nextrc.json`.
 
 ```text
 scp-next.config.json
-.scp-nextrc
-.scp-nextrc.json
 ```
 
 Use `--config` for an explicit path:
