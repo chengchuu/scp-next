@@ -49,13 +49,13 @@ Password arguments are convenient, but they may be exposed through shell history
 listings. Prefer environment variables, SSH agents, or protected private-key files for shared
 or production environments.
 
-Download with private-key authentication:
+Download with password authentication:
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519
+  --password your-password
 ```
 
 ## Library Usage
@@ -68,7 +68,7 @@ import { upload } from "scp-next";
 await upload({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
@@ -84,7 +84,7 @@ import { createClient } from "scp-next";
 const client = createClient({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE
+  password: process.env.SCP_NEXT_PASSWORD
 });
 
 try {

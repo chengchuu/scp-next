@@ -100,11 +100,11 @@ scp-next --help</code></pre>
   --recursive</code></pre>
             </div>
             <div>
-              <p class="code-label">Download with private-key authentication</p>
+              <p class="code-label">Download with password authentication</p>
               <pre><code>scp-next download /var/log/example.log ./logs/example.log \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519</code></pre>
+  --password your-password</code></pre>
             </div>
           </div>
 
@@ -121,7 +121,7 @@ scp-next --help</code></pre>
 await upload({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
@@ -175,11 +175,11 @@ await upload({
 
           <div class="split" style="margin-top: 18px">
             <div>
-              <p class="code-label">Upload with private-key authentication</p>
+              <p class="code-label">Upload with password authentication</p>
               <pre><code>scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519 \
+  --password your-password \
   --recursive</code></pre>
             </div>
             <div>
@@ -187,7 +187,7 @@ await upload({
               <pre><code>scp-next download /var/log/example.log ./logs/example.log \
   --host your-host \
   --username your-username \
-              --private-key-file ~/.ssh/id_ed25519</code></pre>
+  --password your-password</code></pre>
             </div>
           </div>
 
@@ -315,7 +315,7 @@ await upload({
 await upload({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
@@ -329,7 +329,7 @@ await upload({
 const client = createClient({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE
+  password: process.env.SCP_NEXT_PASSWORD
 });
 
 try {

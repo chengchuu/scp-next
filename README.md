@@ -17,7 +17,7 @@
 
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
 It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
-Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
+Developer documentation is available at [GitHub Pages](https://chengchuu.github.io/scp-next/).
 
 ## Contents
 
@@ -51,7 +51,7 @@ npm install scp-next
 
 ## Quick Start
 
-Upload with password authentication:
+Upload a directory:
 
 ```bash
 scp-next upload ./dist /var/www/example \
@@ -61,13 +61,13 @@ scp-next upload ./dist /var/www/example \
   --recursive
 ```
 
-Download with private-key authentication:
+Download a file:
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519
+  --password your-password
 ```
 
 Use the library:
@@ -78,7 +78,7 @@ import { upload } from "scp-next";
 await upload({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
@@ -108,6 +108,18 @@ Destination paths follow familiar `cp`/`scp` behavior. If the destination exists
 
 ### Upload Examples
 
+Password authentication:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --password your-password \
+  --recursive
+```
+
+Private-key authentication:
+
 ```bash
 scp-next upload ./dist /var/www/example \
   --host your-host \
@@ -117,6 +129,17 @@ scp-next upload ./dist /var/www/example \
 ```
 
 ### Download Examples
+
+Password authentication:
+
+```bash
+scp-next download /var/log/example.log ./logs/example.log \
+  --host your-host \
+  --username your-username \
+  --password your-password
+```
+
+Private-key authentication:
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
@@ -159,7 +182,7 @@ import { upload } from "scp-next";
 await upload({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
@@ -176,7 +199,7 @@ async function main() {
   await download({
     host: process.env.SCP_NEXT_HOST,
     username: process.env.SCP_NEXT_USERNAME,
-    privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+    password: process.env.SCP_NEXT_PASSWORD,
     remotePath: "/var/log/example.log",
     localPath: "./logs/example.log"
   });
@@ -196,7 +219,7 @@ import { createClient } from "scp-next";
 const client = createClient({
   host: process.env.SCP_NEXT_HOST,
   username: process.env.SCP_NEXT_USERNAME,
-  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE
+  password: process.env.SCP_NEXT_PASSWORD
 });
 
 try {
@@ -264,7 +287,7 @@ Example:
     "host": "your-host",
     "port": 22,
     "username": "your-username",
-    "privateKeyFile": "~/.ssh/id_ed25519"
+    "password": "your-password"
   },
   "transfer": {
     "recursive": true,
@@ -298,7 +321,7 @@ and `hostFingerprint` are also supported for simple configuration files, but `se
       "host": "your-host-a",
       "port": 22,
       "username": "your-username-a",
-      "privateKeyFile": "~/.ssh/id_ed25519"
+      "password": "your-password-a"
     },
     "staging": {
       "host": "your-host-b",
@@ -324,7 +347,7 @@ Jobs use `source` and `destination`; the `operation` determines which path is lo
     "production": {
       "host": "your-host",
       "username": "your-username",
-      "privateKeyFile": "~/.ssh/id_ed25519"
+      "password": "your-password"
     }
   },
   "jobs": {
@@ -454,7 +477,7 @@ try {
   await upload({
     host: process.env.SCP_NEXT_HOST,
     username: process.env.SCP_NEXT_USERNAME,
-    privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+    password: process.env.SCP_NEXT_PASSWORD,
     localPath: "./dist",
     remotePath: "/var/www/example"
   });
