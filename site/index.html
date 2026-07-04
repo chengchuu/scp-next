@@ -28,11 +28,12 @@
         <nav aria-label="Documentation">
           <p class="nav-label">Start</p>
           <a class="nav-link" href="#install">Install</a>
-          <a class="nav-link" href="#cli">CLI</a>
+          <a class="nav-link" href="#quick-start">Quick Start</a>
+          <a class="nav-link" href="#basic-usage">Basic Usage</a>
           <a class="nav-link" href="#library">Library API</a>
 
           <p class="nav-label">Operate</p>
-          <a class="nav-link" href="#config">Configuration</a>
+          <a class="nav-link" href="#advanced-usage">Advanced Usage</a>
           <a class="nav-link" href="#security">Security</a>
           <a class="nav-link" href="#architecture">Architecture</a>
         </nav>
@@ -56,7 +57,7 @@
               path terminology explicit, and redacts credentials from logs and errors.
             </p>
             <div class="hero-actions">
-              <a class="button" href="#cli">Use the CLI</a>
+              <a class="button" href="#quick-start">Quick start</a>
               <a class="button secondary" href="#library">Use the library</a>
             </div>
           </div>
@@ -87,8 +88,50 @@ scp-next --help</code></pre>
           </div>
         </section>
 
-        <section id="cli" class="section" aria-labelledby="cli-title">
-          <h2 id="cli-title">CLI</h2>
+        <section id="quick-start" class="section" aria-labelledby="quick-start-title">
+          <h2 id="quick-start-title">Quick Start</h2>
+          <div class="split">
+            <div>
+              <p class="code-label">Upload with password authentication</p>
+              <pre><code>scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --password your-password \
+  --recursive</code></pre>
+            </div>
+            <div>
+              <p class="code-label">Download with private-key authentication</p>
+              <pre><code>scp-next download /var/log/example.log ./logs/example.log \
+  --host your-host \
+  --username your-username \
+  --private-key-file ~/.ssh/id_ed25519</code></pre>
+            </div>
+          </div>
+
+          <div class="callout" style="margin-top: 18px">
+            Password arguments are convenient, but they may be exposed through shell
+            history and process listings. Prefer environment variables, SSH agents, or
+            protected private-key files for shared and production machines.
+          </div>
+
+          <div style="margin-top: 18px">
+            <p class="code-label">Use the library</p>
+            <pre><code>import { upload } from "scp-next";
+
+await upload({
+  host: process.env.SCP_NEXT_HOST,
+  username: process.env.SCP_NEXT_USERNAME,
+  privateKeyFile: process.env.SCP_NEXT_PRIVATE_KEY_FILE,
+  localPath: "./dist",
+  remotePath: "/var/www/example",
+  recursive: true,
+  overwrite: true
+});</code></pre>
+          </div>
+        </section>
+
+        <section id="basic-usage" class="section" aria-labelledby="basic-usage-title">
+          <h2 id="basic-usage-title">Basic Usage</h2>
           <p>
             Commands use the standard operand order:
             <code>&lt;source&gt; &lt;destination&gt; [options]</code>.
@@ -132,27 +175,110 @@ scp-next --help</code></pre>
 
           <div class="split" style="margin-top: 18px">
             <div>
-              <p class="code-label">Upload with a private key</p>
+              <p class="code-label">Upload with private-key authentication</p>
               <pre><code>scp-next upload ./dist /var/www/example \
-  --host example.com \
-  --username deploy \
+  --host your-host \
+  --username your-username \
   --private-key-file ~/.ssh/id_ed25519 \
   --recursive</code></pre>
             </div>
             <div>
               <p class="code-label">Download a log file</p>
               <pre><code>scp-next download /var/log/example.log ./logs/example.log \
-  --host example.com \
-  --username deploy \
-  --private-key-file ~/.ssh/id_ed25519</code></pre>
+  --host your-host \
+  --username your-username \
+              --private-key-file ~/.ssh/id_ed25519</code></pre>
             </div>
           </div>
 
-          <div class="callout" style="margin-top: 18px">
-            Password authentication is supported for convenience, but command-line
-            password values may appear in shell history or process listings. Prefer
-            environment variables, SSH agents, or protected private-key files for shared
-            and production machines.
+          <h3 style="margin-top: 24px">CLI Options</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Option</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>--host &lt;host&gt;</code></td>
+                  <td>SSH server host.</td>
+                </tr>
+                <tr>
+                  <td><code>--port &lt;port&gt;</code></td>
+                  <td>SSH server port. Defaults to <code>22</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>--username &lt;username&gt;</code></td>
+                  <td>SSH username.</td>
+                </tr>
+                <tr>
+                  <td><code>--password &lt;password&gt;</code></td>
+                  <td>SSH password. Prefer environment variables, agents, or keys.</td>
+                </tr>
+                <tr>
+                  <td><code>--private-key &lt;privateKey&gt;</code></td>
+                  <td>Private-key content. Redacted from logs and errors.</td>
+                </tr>
+                <tr>
+                  <td><code>--private-key-file &lt;privateKeyFile&gt;</code></td>
+                  <td>Private-key file path. Supports <code>~</code> expansion.</td>
+                </tr>
+                <tr>
+                  <td><code>--passphrase &lt;passphrase&gt;</code></td>
+                  <td>Passphrase for an encrypted private key.</td>
+                </tr>
+                <tr>
+                  <td><code>--config &lt;path&gt;</code></td>
+                  <td>Explicit configuration file path.</td>
+                </tr>
+                <tr>
+                  <td><code>--profile &lt;name&gt;</code></td>
+                  <td>Named server profile from the configuration file.</td>
+                </tr>
+                <tr>
+                  <td><code>--recursive</code></td>
+                  <td>Transfer directories recursively. Defaults to off.</td>
+                </tr>
+                <tr>
+                  <td><code>--overwrite</code></td>
+                  <td>Allow replacing existing destination files.</td>
+                </tr>
+                <tr>
+                  <td><code>--create-directories</code></td>
+                  <td>Create missing destination directories. Enabled by default.</td>
+                </tr>
+                <tr>
+                  <td><code>--no-create-directories</code></td>
+                  <td>Disable automatic destination directory creation.</td>
+                </tr>
+                <tr>
+                  <td><code>--dry-run</code></td>
+                  <td>Resolve and validate without connecting or transferring.</td>
+                </tr>
+                <tr>
+                  <td><code>--timeout &lt;milliseconds&gt;</code></td>
+                  <td>Connection and operation timeout.</td>
+                </tr>
+                <tr>
+                  <td><code>--verbose</code></td>
+                  <td>Print non-sensitive diagnostic details.</td>
+                </tr>
+                <tr>
+                  <td><code>--quiet</code></td>
+                  <td>Disable progress and non-error output.</td>
+                </tr>
+                <tr>
+                  <td><code>--help</code></td>
+                  <td>Show command help.</td>
+                </tr>
+                <tr>
+                  <td><code>--version</code></td>
+                  <td>Show the package version.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -212,14 +338,141 @@ try {
     recursive: true
   });
 } finally {
-  await client.close();
+              await client.close();
 }</code></pre>
             </div>
           </div>
+
+          <div style="margin-top: 18px">
+            <p class="code-label">Use a configuration file</p>
+            <pre><code>import { readFile } from "node:fs/promises";
+
+import { upload, type ScpNextConfig } from "scp-next";
+
+const config = JSON.parse(
+  await readFile(new URL("./scp-next.config.json", import.meta.url), "utf8")
+) as ScpNextConfig;
+
+await upload({
+  ...config.server,
+  ...config.transfer,
+  localPath: "./dist",
+  remotePath: "/var/www/example"
+});</code></pre>
+          </div>
+
+          <h3 style="margin-top: 24px">Library Options</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Used by</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>host</code></td>
+                  <td>server</td>
+                  <td>SSH server host.</td>
+                </tr>
+                <tr>
+                  <td><code>port</code></td>
+                  <td>server</td>
+                  <td>SSH server port. Defaults to <code>22</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>username</code></td>
+                  <td>server</td>
+                  <td>SSH username.</td>
+                </tr>
+                <tr>
+                  <td><code>password</code></td>
+                  <td>server</td>
+                  <td>SSH password. Avoid logging or hard-coding this value.</td>
+                </tr>
+                <tr>
+                  <td><code>privateKey</code></td>
+                  <td>server</td>
+                  <td>Private-key content as a string or Buffer.</td>
+                </tr>
+                <tr>
+                  <td><code>privateKeyFile</code></td>
+                  <td>server</td>
+                  <td>Private-key file path.</td>
+                </tr>
+                <tr>
+                  <td><code>passphrase</code></td>
+                  <td>server</td>
+                  <td>Passphrase for an encrypted private key.</td>
+                </tr>
+                <tr>
+                  <td><code>agent</code></td>
+                  <td>server</td>
+                  <td>SSH agent socket path.</td>
+                </tr>
+                <tr>
+                  <td><code>hostFingerprint</code></td>
+                  <td>server</td>
+                  <td>Expected server host-key SHA-256 fingerprint.</td>
+                </tr>
+                <tr>
+                  <td><code>knownHostsFile</code></td>
+                  <td>server</td>
+                  <td>Known-hosts file for host verification.</td>
+                </tr>
+                <tr>
+                  <td><code>localPath</code></td>
+                  <td>upload/download</td>
+                  <td>Local source for upload or local destination for download.</td>
+                </tr>
+                <tr>
+                  <td><code>remotePath</code></td>
+                  <td>upload/download</td>
+                  <td>Remote destination for upload or remote source for download.</td>
+                </tr>
+                <tr>
+                  <td><code>recursive</code></td>
+                  <td>transfer</td>
+                  <td>Transfer directories recursively. Defaults to false.</td>
+                </tr>
+                <tr>
+                  <td><code>overwrite</code></td>
+                  <td>transfer</td>
+                  <td>Allow replacing existing files.</td>
+                </tr>
+                <tr>
+                  <td><code>createDirectories</code></td>
+                  <td>transfer</td>
+                  <td>Create missing destination directories. Defaults to true.</td>
+                </tr>
+                <tr>
+                  <td><code>dryRun</code></td>
+                  <td>transfer</td>
+                  <td>Validate and plan without modifying local or remote files.</td>
+                </tr>
+                <tr>
+                  <td><code>timeout</code></td>
+                  <td>server/transfer</td>
+                  <td>Connection and operation timeout in milliseconds.</td>
+                </tr>
+                <tr>
+                  <td><code>onProgress</code></td>
+                  <td>transfer</td>
+                  <td>Progress callback for files and directory transfers.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
-        <section id="config" class="section" aria-labelledby="config-title">
-          <h2 id="config-title">Configuration</h2>
+        <section
+          id="advanced-usage"
+          class="section"
+          aria-labelledby="advanced-usage-title"
+        >
+          <h2 id="advanced-usage-title">Advanced Usage</h2>
           <p>
             `scp-next` supports JSON configuration files, named profiles, reusable jobs,
             and environment variables. Explicit CLI input always wins.
@@ -229,9 +482,9 @@ try {
               <p class="code-label">Config file</p>
               <pre><code>{
   "server": {
-    "host": "example.com",
+    "host": "your-host",
     "port": 22,
-    "username": "deploy",
+    "username": "your-username",
     "privateKeyFile": "~/.ssh/id_ed25519"
   },
   "transfer": {
@@ -256,6 +509,181 @@ try {
   }
 }</code></pre>
             </div>
+          </div>
+
+          <div class="split" style="margin-top: 18px">
+            <div>
+              <p class="code-label">Explicit config path</p>
+              <pre><code>scp-next upload ./dist /var/www/example \
+  --config ./deploy/scp-next.json</code></pre>
+            </div>
+            <div>
+              <p class="code-label">Config profile</p>
+              <pre><code>scp-next upload ./dist /var/www/example \
+  --config ./scp-next.config.json \
+  --profile production</code></pre>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 24px">Configuration File Options</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>server</code></td>
+                  <td>SSH connection options such as host, port, username, and keys.</td>
+                </tr>
+                <tr>
+                  <td><code>transfer</code></td>
+                  <td>Transfer defaults such as recursive, overwrite, and timeout.</td>
+                </tr>
+                <tr>
+                  <td><code>defaultProfile</code></td>
+                  <td>Profile used when no CLI or environment profile is selected.</td>
+                </tr>
+                <tr>
+                  <td><code>profiles</code></td>
+                  <td>Named server connection profiles.</td>
+                </tr>
+                <tr>
+                  <td><code>jobs</code></td>
+                  <td>Reusable upload or download jobs for <code>scp-next run</code>.</td>
+                </tr>
+                <tr>
+                  <td>root server keys</td>
+                  <td>
+                    Simple configs may place server keys such as <code>host</code>,
+                    <code>username</code>, and <code>privateKeyFile</code> at the root.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 24px">Server Fields</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>host</code></td>
+                  <td>SSH server host.</td>
+                </tr>
+                <tr>
+                  <td><code>port</code></td>
+                  <td>SSH server port. Defaults to <code>22</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>username</code></td>
+                  <td>SSH username.</td>
+                </tr>
+                <tr>
+                  <td><code>password</code></td>
+                  <td>
+                    SSH password. Prefer environment variables or protected secrets.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>privateKey</code></td>
+                  <td>Private-key content.</td>
+                </tr>
+                <tr>
+                  <td><code>privateKeyFile</code></td>
+                  <td>Private-key file path.</td>
+                </tr>
+                <tr>
+                  <td><code>passphrase</code></td>
+                  <td>Passphrase for an encrypted private key.</td>
+                </tr>
+                <tr>
+                  <td><code>agent</code></td>
+                  <td>SSH agent socket path.</td>
+                </tr>
+                <tr>
+                  <td><code>timeout</code></td>
+                  <td>Connection timeout in milliseconds.</td>
+                </tr>
+                <tr>
+                  <td><code>hostFingerprint</code></td>
+                  <td>Expected server host-key SHA-256 fingerprint.</td>
+                </tr>
+                <tr>
+                  <td><code>knownHostsFile</code></td>
+                  <td>Known-hosts file for host verification.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 24px">Transfer and Job Fields</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Used by</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>operation</code></td>
+                  <td>jobs</td>
+                  <td><code>upload</code> or <code>download</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>profile</code></td>
+                  <td>jobs</td>
+                  <td>Named server profile for the job.</td>
+                </tr>
+                <tr>
+                  <td><code>source</code></td>
+                  <td>jobs</td>
+                  <td>Origin path. Local for upload, remote for download.</td>
+                </tr>
+                <tr>
+                  <td><code>destination</code></td>
+                  <td>jobs</td>
+                  <td>Destination path. Remote for upload, local for download.</td>
+                </tr>
+                <tr>
+                  <td><code>recursive</code></td>
+                  <td>transfer/jobs</td>
+                  <td>Transfer directories recursively. Defaults to false.</td>
+                </tr>
+                <tr>
+                  <td><code>overwrite</code></td>
+                  <td>transfer/jobs</td>
+                  <td>Allow replacing existing files.</td>
+                </tr>
+                <tr>
+                  <td><code>createDirectories</code></td>
+                  <td>transfer/jobs</td>
+                  <td>Create missing destination directories. Defaults to true.</td>
+                </tr>
+                <tr>
+                  <td><code>dryRun</code></td>
+                  <td>transfer/jobs</td>
+                  <td>Resolve and validate without connecting or transferring.</td>
+                </tr>
+                <tr>
+                  <td><code>timeout</code></td>
+                  <td>transfer/jobs</td>
+                  <td>Operation timeout in milliseconds.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <h3 style="margin-top: 24px">Precedence</h3>

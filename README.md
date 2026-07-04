@@ -19,6 +19,14 @@
 It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 
+## Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Basic Usage](#basic-usage)
+- [Library Usage](#library-usage)
+- [Advanced Usage](#advanced-usage)
+
 ## Features
 
 - Upload and download files or directories recursively.
@@ -200,6 +208,28 @@ try {
 }
 ```
 
+### Use a Configuration File
+
+The CLI loads configuration files automatically. The library API receives options directly,
+so load JSON in your application and pass the relevant `server` and `transfer` values.
+
+```ts
+import { readFile } from "node:fs/promises";
+
+import { upload, type ScpNextConfig } from "scp-next";
+
+const config = JSON.parse(
+  await readFile(new URL("./scp-next.config.json", import.meta.url), "utf8")
+) as ScpNextConfig;
+
+await upload({
+  ...config.server,
+  ...config.transfer,
+  localPath: "./dist",
+  remotePath: "/var/www/example"
+});
+```
+
 ## Advanced Usage
 
 ### Configuration Files
@@ -216,6 +246,14 @@ Use `--config` for an explicit path:
 
 ```bash
 scp-next upload ./dist /var/www/example --config ./deploy/scp-next.json
+```
+
+Use `--profile` with a configuration file:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --config ./scp-next.config.json \
+  --profile production
 ```
 
 Example:
@@ -236,6 +274,19 @@ Example:
   }
 }
 ```
+
+Configuration file options:
+
+| Key              | Description                                                         |
+| ---------------- | ------------------------------------------------------------------- |
+| `server`         | SSH connection options such as `host`, `port`, and `username`.      |
+| `transfer`       | Transfer defaults such as `recursive`, `overwrite`, and `timeout`.  |
+| `defaultProfile` | Profile name used when `--profile` or `SCP_NEXT_PROFILE` is absent. |
+| `profiles`       | Named server connection profiles.                                   |
+| `jobs`           | Reusable upload or download jobs for `scp-next run <job>`.          |
+
+Root-level server options such as `host`, `username`, `privateKeyFile`, `knownHostsFile`,
+and `hostFingerprint` are also supported for simple configuration files, but `server` keeps connection values grouped and easier to read.
 
 ### Named Profiles
 
