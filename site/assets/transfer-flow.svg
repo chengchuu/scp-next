@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">scp-next transfer flow</title>
+  <desc id="desc">A local machine transfers files to and from a remote server over an SSH SFTP connection.</desc>
+  <rect width="960" height="420" rx="0" fill="#f7f8f3" />
+  <rect x="64" y="84" width="244" height="210" rx="8" fill="#ffffff" stroke="#24352b" stroke-width="2" />
+  <rect x="652" y="84" width="244" height="210" rx="8" fill="#ffffff" stroke="#24352b" stroke-width="2" />
+  <rect x="358" y="126" width="244" height="126" rx="8" fill="#16351f" />
+  <text x="186" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#16351f">Local</text>
+  <text x="186" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#3d4b42">files and directories</text>
+  <text x="186" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#5c675f">./dist</text>
+  <text x="186" y="242" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#5c675f">./logs/app.log</text>
+  <text x="480" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">SSH</text>
+  <text x="480" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#dfe9d7">SFTP transport</text>
+  <text x="774" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#16351f">Remote</text>
+  <text x="774" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#3d4b42">server paths</text>
+  <text x="774" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#5c675f">/var/www/app</text>
+  <text x="774" y="242" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#5c675f">/var/log/app.log</text>
+  <path d="M326 170 H338" stroke="#d58f27" stroke-width="8" stroke-linecap="round" />
+  <path d="M622 170 H634" stroke="#d58f27" stroke-width="8" stroke-linecap="round" />
+  <path d="M326 210 H338" stroke="#2b6cb0" stroke-width="8" stroke-linecap="round" />
+  <path d="M622 210 H634" stroke="#2b6cb0" stroke-width="8" stroke-linecap="round" />
+  <path d="M326 170 H622" stroke="#d58f27" stroke-width="6" stroke-linecap="round" />
+  <path d="M622 210 H326" stroke="#2b6cb0" stroke-width="6" stroke-linecap="round" />
+  <path d="M622 170 l-20 -13 v26 z" fill="#d58f27" />
+  <path d="M326 210 l20 -13 v26 z" fill="#2b6cb0" />
+  <text x="480" y="316" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#16351f">upload: local source to remote destination</text>
+  <text x="480" y="348" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#16351f">download: remote source to local destination</text>
+</svg>

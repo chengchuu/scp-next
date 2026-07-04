@@ -8,6 +8,7 @@ export default tseslint.config(
       "coverage/**",
       "lib/**",
       "node_modules/**",
+      "temp/**",
       "scripts/**",
       "commitlint.config.js",
       "examples/commonjs/**"

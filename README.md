@@ -4,6 +4,7 @@
 [![license][license-image]][license-url]
 [![node version][node-image]][npm-url]
 [![module type][module-image]][npm-url]
+[![docs][docs-image]][docs-url]
 
 [npm-image]: https://img.shields.io/npm/v/scp-next
 [npm-url]: https://npmjs.org/package/scp-next
@@ -11,9 +12,13 @@
 [license-url]: https://github.com/chengchuu/scp-next
 [node-image]: https://img.shields.io/node/v/scp-next
 [module-image]: https://img.shields.io/badge/module-ESM%20%2B%20CJS-blue
+[docs-image]: https://img.shields.io/badge/docs-GitHub%20Pages-2b6cb0
+[docs-url]: https://chengchuu.github.io/scp-next/
 
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
 The package uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
+
+Developer documentation is available at <https://chengchuu.github.io/scp-next/>.
 
 ## Features
 

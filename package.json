@@ -1,6 +1,6 @@
 {
   "name": "scp-next",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -57,7 +57,7 @@
   "bugs": {
     "url": "https://github.com/chengchuu/scp-next/issues"
   },
-  "homepage": "https://github.com/chengchuu/scp-next#readme",
+  "homepage": "https://chengchuu.github.io/scp-next/",
   "engines": {
     "node": ">=18.18.0"
   },
