@@ -27,13 +27,50 @@ export function createProgressReporter(
     return undefined;
   }
 
+  const minimumUpdateIntervalMs = 500;
+  let lastLineLength = 0;
+  let lastPercentage: number | undefined;
+  let lastWriteAt = 0;
+  let completed = false;
+
   return (progress) => {
+    if (completed) {
+      return;
+    }
+
+    const now = Date.now();
+    const totalBytes = progress.totalBytes;
+    const isComplete =
+      progress.percentage === 100 ||
+      (totalBytes !== undefined && totalBytes > 0 && progress.transferredBytes >= totalBytes);
+    const percentageChanged =
+      progress.percentage !== undefined && progress.percentage !== lastPercentage;
+
+    if (
+      !isComplete &&
+      !percentageChanged &&
+      lastWriteAt !== 0 &&
+      now - lastWriteAt < minimumUpdateIntervalMs
+    ) {
+      return;
+    }
+
     const total = progress.totalBytes ? formatBytes(progress.totalBytes) : "?";
     const transferred = formatBytes(progress.transferredBytes);
     const percentage = progress.percentage === undefined ? "" : ` (${progress.percentage}%)`;
     const currentFile = progress.currentFile ? `: ${progress.currentFile}` : "";
-    output.stderr.write(`\r${progress.operation === "upload" ? "Uploading" : "Downloading"}${currentFile}\n`);
-    output.stderr.write(`${transferred} / ${total}${percentage}\n`);
+    const line = `${progress.operation === "upload" ? "Uploading" : "Downloading"}${currentFile} ${transferred} / ${total}${percentage}`;
+    const padding = " ".repeat(Math.max(0, lastLineLength - line.length));
+    output.stderr.write(`\r${line}${padding}`);
+
+    lastLineLength = line.length;
+    lastPercentage = progress.percentage;
+    lastWriteAt = now;
+
+    if (isComplete) {
+      output.stderr.write("\n");
+      completed = true;
+    }
   };
 }
 
