@@ -111,44 +111,66 @@ Destination paths follow familiar `cp`/`scp` behavior. If the destination exists
 
 ### Upload Examples
 
-Password authentication:
+Preview a recursive deploy before connecting:
 
 ```bash
 scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
   --password your-password \
-  --recursive
+  --recursive \
+  --dry-run
 ```
 
-Private-key authentication:
+Deploy with overwrite and verbose diagnostics:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --password your-password \
+  --recursive \
+  --overwrite \
+  --verbose
+```
+
+Use an encrypted private key:
 
 ```bash
 scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
   --private-key-file ~/.ssh/id_ed25519 \
+  --passphrase your-passphrase \
   --recursive
 ```
 
 ### Download Examples
 
-Password authentication:
+Download a remote directory recursively:
 
 ```bash
-scp-next download /var/log/example.log ./logs/example.log \
+scp-next download /var/log/example ./logs/example \
   --host your-host \
   --username your-username \
-  --password your-password
+  --password your-password \
+  --recursive
 ```
 
-Private-key authentication:
+Download and overwrite an existing local file:
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
   --host your-host \
   --username your-username \
-  --private-key-file ~/.ssh/id_ed25519
+  --password your-password \
+  --overwrite
+```
+
+Run a configured download job:
+
+```bash
+scp-next run download-logs --config ./scp-next.config.json
 ```
 
 ### CLI Options
