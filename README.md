@@ -43,7 +43,7 @@ npm install scp-next
 
 ## Quick Start
 
-Upload a directory:
+Upload with password authentication:
 
 ```bash
 scp-next upload ./dist /var/www/example \
@@ -53,7 +53,7 @@ scp-next upload ./dist /var/www/example \
   --recursive
 ```
 
-Download a file:
+Download with private-key authentication:
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
