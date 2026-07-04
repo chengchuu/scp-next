@@ -138,6 +138,34 @@ describe("ScpNextClientImpl with mock transport", () => {
     );
   });
 
+  it("suggests --overwrite when a remote upload destination already exists", async () => {
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-existing-remote");
+    await mkdir(directory, { recursive: true });
+    const localFile = path.join(directory, "webmazey-docker-run.sh");
+    await writeFile(localFile, "echo deploy");
+    const transport = new MockTransport();
+    transport.exists.mockImplementation((remotePath) => {
+      if (remotePath === "/web/webmazey-docker-run.sh") return Promise.resolve("-");
+      return Promise.resolve(false);
+    });
+    const client = new ScpNextClientImpl(
+      {
+        host: "example.com",
+        username: "deploy",
+        password: "secret"
+      },
+      { transport }
+    );
+
+    await expect(
+      client.upload(localFile, "/web/webmazey-docker-run.sh", {
+        overwrite: false
+      })
+    ).rejects.toThrow(
+      "Remote destination already exists: /web/webmazey-docker-run.sh. Use --overwrite to overwrite it."
+    );
+  });
+
   it("uploads a local directory into an existing remote directory destination", async () => {
     const directory = path.join(os.tmpdir(), "scp-next-tests", "client-upload-directory");
     const localDirectory = path.join(directory, "dist");

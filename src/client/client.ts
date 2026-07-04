@@ -447,9 +447,12 @@ export class ScpNextClientImpl implements ScpNextClient {
     }
     const exists = await this.transport.exists(remotePath);
     if (exists) {
-      throw new TransferError(`Remote destination already exists: ${remotePath}`, {
-        context: { remotePath }
-      });
+      throw new TransferError(
+        `Remote destination already exists: ${remotePath}. Use --overwrite to overwrite it.`,
+        {
+          context: { remotePath }
+        }
+      );
     }
   }
 
