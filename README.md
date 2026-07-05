@@ -70,6 +70,12 @@ scp-next download /var/log/example.log ./logs/example.log \
   --password your-password
 ```
 
+Output:
+
+```text
+Downloading: /var/log/example.log 1.0 MB / 1.0 MB (100%)
+```
+
 Password arguments are convenient, but they may be exposed through shell history and process listings.
 Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
 
