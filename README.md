@@ -24,8 +24,11 @@ Developer documentation is available at [GitHub Pages](https://chengchuu.github.
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Basic Usage](#basic-usage)
+  - [CLI Options](#cli-options)
 - [Library Usage](#library-usage)
 - [Advanced Usage](#advanced-usage)
+  - [Configuration File Options](#configuration-file-options)
+  - [Environment Variables](#environment-variables)
 
 ## Features
 
@@ -329,7 +332,7 @@ Example:
 
 Do not commit configuration files containing real passwords. Prefer `SCP_NEXT_PASSWORD` or another protected secret source for shared repositories and deployment environments.
 
-Configuration file options:
+### Configuration File Options
 
 | Key              | Description                                                         |
 | ---------------- | ------------------------------------------------------------------- |
