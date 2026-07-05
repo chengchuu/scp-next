@@ -290,26 +290,26 @@ await upload({
 
 ### Library Options
 
-| Field               | Used by           | Description                                                      |
-| ------------------- | ----------------- | ---------------------------------------------------------------- |
-| `host`              | server            | SSH server host.                                                 |
-| `port`              | server            | SSH server port. Defaults to `22`.                               |
-| `username`          | server            | SSH username.                                                    |
-| `password`          | server            | SSH password.                                                    |
-| `privateKey`        | server            | Private-key content as a string or Buffer.                       |
-| `privateKeyFile`    | server            | Private-key file path.                                           |
-| `passphrase`        | server            | Passphrase for an encrypted private key.                         |
-| `agent`             | server            | SSH agent socket path.                                           |
-| `hostFingerprint`   | server            | Expected server host-key SHA-256 fingerprint.                    |
-| `knownHostsFile`    | server            | Known-hosts file for host verification.                          |
-| `localPath`         | upload/download   | Local source for upload or local destination for download.       |
-| `remotePath`        | upload/download   | Remote destination for upload or remote source for download.     |
-| `recursive`         | transfer          | Transfer directories recursively. Defaults to `false`.           |
-| `overwrite`         | transfer          | Allow replacing existing files.                                  |
-| `createDirectories` | transfer          | Create missing destination directories. Defaults to `true`.      |
-| `dryRun`            | transfer          | Validate and plan without modifying local or remote files.       |
-| `timeout`           | server / transfer | Connection and operation timeout in milliseconds.                |
-| `onProgress`        | transfer          | Progress callback for file and directory transfers.              |
+| Field               | Used by           | Description                                                  |
+| ------------------- | ----------------- | ------------------------------------------------------------ |
+| `host`              | server            | SSH server host.                                             |
+| `port`              | server            | SSH server port. Defaults to `22`.                           |
+| `username`          | server            | SSH username.                                                |
+| `password`          | server            | SSH password.                                                |
+| `privateKey`        | server            | Private-key content as a string or Buffer.                   |
+| `privateKeyFile`    | server            | Private-key file path.                                       |
+| `passphrase`        | server            | Passphrase for an encrypted private key.                     |
+| `agent`             | server            | SSH agent socket path.                                       |
+| `hostFingerprint`   | server            | Expected server host-key SHA-256 fingerprint.                |
+| `knownHostsFile`    | server            | Known-hosts file for host verification.                      |
+| `localPath`         | upload/download   | Local source for upload or local destination for download.   |
+| `remotePath`        | upload/download   | Remote destination for upload or remote source for download. |
+| `recursive`         | transfer          | Transfer directories recursively. Defaults to `false`.       |
+| `overwrite`         | transfer          | Allow replacing existing files.                              |
+| `createDirectories` | transfer          | Create missing destination directories. Defaults to `true`.  |
+| `dryRun`            | transfer          | Validate and plan without modifying local or remote files.   |
+| `timeout`           | server / transfer | Connection and operation timeout in milliseconds.            |
+| `onProgress`        | transfer          | Progress callback for file and directory transfers.          |
 
 ## Advanced Usage
 
@@ -447,6 +447,7 @@ SCP_NEXT_PRIVATE_KEY_FILE
 SCP_NEXT_PASSPHRASE
 SCP_NEXT_TIMEOUT
 SCP_NEXT_PROFILE
+SSH_AUTH_SOCK
 ```
 
 Bash:
@@ -490,6 +491,32 @@ Supported methods:
 - Private-key file
 - Private-key passphrase
 - SSH agent authentication through `agent` or `SSH_AUTH_SOCK`
+
+SSH agent CLI example:
+
+```bash
+ssh-add ~/.ssh/id_ed25519
+
+export SCP_NEXT_HOST="your-host"
+export SCP_NEXT_USERNAME="your-username"
+
+scp-next upload ./dist /var/www/example --recursive
+```
+
+Library example:
+
+```ts
+import { upload } from "scp-next";
+
+await upload({
+  host: process.env.SCP_NEXT_HOST,
+  username: process.env.SCP_NEXT_USERNAME,
+  agent: process.env.SSH_AUTH_SOCK,
+  localPath: "./dist",
+  remotePath: "/var/www/example",
+  recursive: true
+});
+```
 
 ### Host Verification
 
