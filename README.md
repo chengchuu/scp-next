@@ -26,6 +26,7 @@ Developer documentation is available at [GitHub Pages](https://chengchuu.github.
 - [Basic Usage](#basic-usage)
   - [CLI Options](#cli-options)
 - [Library Usage](#library-usage)
+  - [Library Options](#library-options)
 - [Advanced Usage](#advanced-usage)
   - [Configuration File Options](#configuration-file-options)
   - [Environment Variables](#environment-variables)
@@ -80,7 +81,7 @@ Downloading: /var/log/example.log 1.0 MB / 1.0 MB (100%)
 ```
 
 Password arguments are convenient, but they may be exposed through shell history and process listings.
-Prefer `SCP_NEXT_PASSWORD`, SSH agents, or protected private-key files for shared or production environments.
+Prefer `SCP_NEXT_PASSWORD` environment variable in shared or production environments. For key authentication, use a protected private-key file.
 
 Use the library:
 
@@ -189,7 +190,7 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--host <host>`                       | SSH server host.                                                       |
 | `--port <port>`                       | SSH server port. Defaults to `22`.                                     |
 | `--username <username>`               | SSH username.                                                          |
-| `--password <password>`               | SSH password. Prefer environment variables, SSH agents, or key files.  |
+| `--password <password>`               | SSH password.                                                          |
 | `--private-key <privateKey>`          | Private-key content. Redacted from logs and errors.                    |
 | `--private-key-file <privateKeyFile>` | Private-key file path. Supports `~` expansion.                         |
 | `--passphrase <passphrase>`           | Passphrase for an encrypted private key.                               |
@@ -286,6 +287,29 @@ await upload({
   remotePath: "/var/www/example"
 });
 ```
+
+### Library Options
+
+| Field               | Used by           | Description                                                      |
+| ------------------- | ----------------- | ---------------------------------------------------------------- |
+| `host`              | server            | SSH server host.                                                 |
+| `port`              | server            | SSH server port. Defaults to `22`.                               |
+| `username`          | server            | SSH username.                                                    |
+| `password`          | server            | SSH password.                                                    |
+| `privateKey`        | server            | Private-key content as a string or Buffer.                       |
+| `privateKeyFile`    | server            | Private-key file path.                                           |
+| `passphrase`        | server            | Passphrase for an encrypted private key.                         |
+| `agent`             | server            | SSH agent socket path.                                           |
+| `hostFingerprint`   | server            | Expected server host-key SHA-256 fingerprint.                    |
+| `knownHostsFile`    | server            | Known-hosts file for host verification.                          |
+| `localPath`         | upload/download   | Local source for upload or local destination for download.       |
+| `remotePath`        | upload/download   | Remote destination for upload or remote source for download.     |
+| `recursive`         | transfer          | Transfer directories recursively. Defaults to `false`.           |
+| `overwrite`         | transfer          | Allow replacing existing files.                                  |
+| `createDirectories` | transfer          | Create missing destination directories. Defaults to `true`.      |
+| `dryRun`            | transfer          | Validate and plan without modifying local or remote files.       |
+| `timeout`           | server / transfer | Connection and operation timeout in milliseconds.                |
+| `onProgress`        | transfer          | Progress callback for file and directory transfers.              |
 
 ## Advanced Usage
 
