@@ -201,11 +201,13 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--create-directories`                | Create missing destination directories. Enabled by default.            |
 | `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
-| `--timeout <milliseconds>`            | Connection and operation timeout in milliseconds.                      |
+| `--timeout <milliseconds>`            | SSH connection ready timeout in milliseconds.                          |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |
 | `--quiet`                             | Disable progress and non-error output.                                 |
 | `--help`                              | Show command help.                                                     |
 | `--version`                           | Show the package version.                                              |
+
+`--timeout` maps to the SSH `readyTimeout`, so it controls how long to wait for the connection handshake. It does not currently limit per-file or total transfer duration.
 
 ## Library Usage
 
@@ -308,7 +310,7 @@ await upload({
 | `overwrite`         | transfer          | Allow replacing existing files.                              |
 | `createDirectories` | transfer          | Create missing destination directories. Defaults to `true`.  |
 | `dryRun`            | transfer          | Validate and plan without modifying local or remote files.   |
-| `timeout`           | server / transfer | Connection and operation timeout in milliseconds.            |
+| `timeout`           | server/transfer   | SSH connection ready timeout in milliseconds.                |
 | `onProgress`        | transfer          | Progress callback for file and directory transfers.          |
 
 ## Advanced Usage
@@ -358,13 +360,13 @@ Do not commit configuration files containing real passwords. Prefer `SCP_NEXT_PA
 
 ### Configuration File Options
 
-| Key              | Description                                                         |
-| ---------------- | ------------------------------------------------------------------- |
-| `server`         | SSH connection options such as `host`, `port`, and `username`.      |
-| `transfer`       | Transfer defaults such as `recursive`, `overwrite`, and `timeout`.  |
-| `defaultProfile` | Profile name used when `--profile` or `SCP_NEXT_PROFILE` is absent. |
-| `profiles`       | Named server connection profiles.                                   |
-| `jobs`           | Reusable upload or download jobs for `scp-next run <job>`.          |
+| Key              | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `server`         | SSH connection options such as `host`, `port`, and `username`.       |
+| `transfer`       | Transfer defaults such as `recursive`, `overwrite`, and directories. |
+| `defaultProfile` | Profile name used when `--profile` or `SCP_NEXT_PROFILE` is absent.  |
+| `profiles`       | Named server connection profiles.                                    |
+| `jobs`           | Reusable upload or download jobs for `scp-next run <job>`.           |
 
 Root-level server options such as `host`, `username`, `privateKeyFile`, `knownHostsFile`,
 and `hostFingerprint` are also supported for simple configuration files, but `server` keeps connection values grouped and easier to read.
