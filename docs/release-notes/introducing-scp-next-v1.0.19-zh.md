@@ -1,27 +1,15 @@
 # 面向中文开发者的 `scp-next` v1.0.19 介绍
 
-`scp-next` 是一个 SCP 风格的 npm 包。它同时提供命令行工具和
-TypeScript 库，用于通过 SSH 安全传输文件。
-
-虽然包名包含 SCP，实际传输由 `ssh2-sftp-client` 完成。也就是说，
-`scp-next` 使用 SFTP，不会为普通传输执行远程 shell 命令。
-
-v1.0.19 重点改进文档结构。新接手的工程师可以更快理解安装方式、
-基础命令、配置文件、环境变量和库 API。
+`scp-next` 是一个 SCP 风格的 npm 包。他同时提供命令行工具和库，用于通过 SSH 安全传输文件。虽然包名包含 SCP，实际使用 SFTP，不会为普通传输执行远程 Shell 命令。
 
 ## 适合谁使用
 
-如果你需要在部署脚本、CI 流程或 Node.js 应用中传输文件，
-`scp-next` 可以减少重复封装。
-
-常见场景如下。
+如果你需要在部署脚本、CI 流程或 Node.js 应用中传输文件，`scp-next` 可以减少重复封装。常见场景如下:
 
 - 将本地构建产物上传到服务器。
 - 从服务器下载日志或产物。
 - 用配置文件管理不同服务器环境。
 - 在应用代码中复用同一个传输客户端。
-
-`scp-next` 要求 Node.js 版本不低于 18.18.0。
 
 ## 安装方式
 
@@ -37,8 +25,7 @@ npm install --global scp-next
 npm install scp-next
 ```
 
-如果一个项目只在脚本里调用命令行工具，也可以把它安装到项目依赖中，
-再通过 `npx scp-next` 或 npm scripts 调用。
+如果一个项目只在脚本里调用命令行工具，也可以把他安装到项目依赖中，再通过 `npx scp-next` 或 npm scripts 调用。
 
 ## 先理解传输方向
 
@@ -50,15 +37,12 @@ scp-next download <source> <destination> [options]
 scp-next run <job> [source] [destination] [options]
 ```
 
-方向规则如下。Upload 表示上传，Download 表示下载。
+方向规则如下:
 
 | Operation | Source | Destination |
 | --------- | ------ | ----------- |
 | Upload    | Local  | Remote      |
 | Download  | Remote | Local       |
-
-程序 API 不使用 `<source>` 和 `<destination>`。上传和下载 API 使用
-`localPath` 和 `remotePath`，这样可以明确区分本地路径和远程路径。
 
 ## 命令行快速开始
 
@@ -72,7 +56,7 @@ scp-next upload ./dist /var/www/example \
   --recursive
 ```
 
-下载远程文件到本地目录。
+下载远程文件到本地目录。如果目标目录不存在，`scp-next` 默认会创建目录。这符合日常 `cp` 和 `scp` 风格的使用习惯。可以用 `--no-create-directories` 关闭该行为。
 
 ```bash
 scp-next download /var/log/example.log ./logs/example.log \
@@ -81,10 +65,7 @@ scp-next download /var/log/example.log ./logs/example.log \
   --password your-password
 ```
 
-如果目标目录不存在，`scp-next` 默认会创建目录。这符合日常 `cp` 和
-`scp` 风格的使用习惯。可以用 `--no-create-directories` 关闭该行为。
-
-先预览上传计划，而不连接服务器。
+先预览上传计划，而不连接服务器。`--dry-run` 会解析配置并检查本地路径。他不会连接远程服务器，也不会修改本地或远程文件。
 
 ```bash
 scp-next upload ./dist /var/www/example \
@@ -94,9 +75,6 @@ scp-next upload ./dist /var/www/example \
   --recursive \
   --dry-run
 ```
-
-`--dry-run` 会解析配置并检查本地路径。它不会连接远程服务器，
-也不会修改本地或远程文件。
 
 ## 推荐的凭据写法
 
@@ -110,8 +88,7 @@ scp-next upload ./dist /var/www/example \
   --recursive
 ```
 
-共享环境和生产环境建议使用环境变量。这样可以降低密码进入 shell
-历史记录或进程列表的风险。
+共享环境和生产环境建议使用环境变量。这样可以降低密码进入 Shell 历史记录或进程列表的风险。
 
 ```bash
 export SCP_NEXT_HOST="your-host"
@@ -129,18 +106,6 @@ scp-next upload ./dist /var/www/example \
   --username your-username \
   --private-key-file ~/.ssh/id_ed25519 \
   --recursive
-```
-
-如果团队已经使用 SSH agent，可以先添加私钥，再让 `scp-next` 读取
-`SSH_AUTH_SOCK`。
-
-```bash
-ssh-add ~/.ssh/id_ed25519
-
-export SCP_NEXT_HOST="your-host"
-export SCP_NEXT_USERNAME="your-username"
-
-scp-next upload ./dist /var/www/example --recursive
 ```
 
 ## 常用命令选项
@@ -163,9 +128,6 @@ scp-next upload ./dist /var/www/example --recursive
 | `--timeout <milliseconds>`            | SSH 握手超时时间，单位为毫秒。  |
 | `--quiet`                             | 关闭进度和非错误输出。          |
 | `--verbose`                           | 输出不含敏感信息的诊断内容。    |
-
-`--timeout` 对应 SSH 的 `readyTimeout`。它控制连接握手等待时间，
-不限制单个文件或整次传输的耗时。
 
 ## 配置文件用法
 
@@ -244,8 +206,7 @@ scp-next run deploy ./dist-canary /var/www/canary
 6. 配置的 job 值
 7. 内部默认值
 
-不要把包含真实密码的配置文件提交到仓库。共享仓库和部署环境应优先使用
-`SCP_NEXT_PASSWORD`、SSH agent 或受保护的密钥文件。
+不要把包含真实密码的配置文件提交到 Public 仓库。共享仓库和部署环境应优先使用 `SCP_NEXT_PASSWORD` 或受保护的密钥文件。
 
 ## 库 API 用法
 
@@ -315,27 +276,13 @@ createClient(options);
 copy(options);
 ```
 
-错误类型包含稳定的 `code`、可读的 `message` 和经过脱敏的上下文。
-常见错误包括 `ConfigurationError`、`AuthenticationError`、
-`ConnectionError`、`TransferError` 和 `HostVerificationError`。
+错误类型包含稳定的 `code`、可读的 `message` 和经过脱敏的上下文。常见错误包括 `ConfigurationError`、`AuthenticationError`、`ConnectionError`、`TransferError` 和 `HostVerificationError`。
 
 ## 主机验证
 
-`scp-next` 支持通过 `hostFingerprint` 或 `knownHostsFile` 验证主机。
-如果没有显式配置，它会读取 `~/.ssh/known_hosts`。
+`scp-next` 支持通过 `hostFingerprint` 或 `knownHostsFile` 验证主机。如果没有显式配置，他会读取 `~/.ssh/known_hosts`。
 
-在 CI 或部署环境中，如果没有可用的 known-hosts 文件，建议配置
-`hostFingerprint`。如果无法建立主机验证，`scp-next` 会失败退出。
-
-## v1.0.19 的文档改进
-
-v1.0.19 主要面向文档可读性和接手效率。
-
-- 重组 README，突出安装、快速开始、基础用法和高级用法。
-- 改进密码示例，同时保留安全警告和替代认证方式。
-- 补充 SSH agent、`SSH_AUTH_SOCK`、超时行为和配置文件建议。
-- 扩展 GitHub Pages 文档中的 CLI、库 API 和配置选项说明。
-- 将长篇发布说明统一放到 `docs/release-notes/` 目录。
+在 CI 或部署环境中，如果没有可用的 known-hosts 文件，建议配置 `hostFingerprint`。如果无法建立主机验证，`scp-next` 会失败退出。
 
 ## 新人接手清单
 
@@ -344,9 +291,5 @@ v1.0.19 主要面向文档可读性和接手效率。
 1. 确认 Node.js 版本不低于 18.18.0。
 2. 使用 `npm install --global scp-next` 安装 CLI。
 3. 用 `scp-next upload ... --dry-run` 验证参数和路径。
-4. 将服务器信息放入环境变量或配置文件。
-5. 使用 `scp-next run <job>` 固化常用上传或下载流程。
-6. 在 Node.js 应用中按需使用 `upload`、`download` 或 `createClient`。
 
-掌握这几项后，就可以把 `scp-next` 用于日常部署脚本、
-日志下载任务和 Node.js 文件传输流程。
+掌握这几项后，就可以把 `scp-next` 用于日常部署脚本、日志下载任务和 Node.js 文件传输流程。
