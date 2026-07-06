@@ -19,6 +19,14 @@
 It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 Developer documentation is available at [GitHub Pages](https://chengchuu.github.io/scp-next/).
 
+## Features
+
+- Upload and download files or directories recursively.
+- CLI usage with clear `<source> <destination>` operands.
+- ESM `import` and CommonJS `require` support.
+- JSON configuration files, named profiles, and configured jobs.
+- Reusable transfer client.
+
 ## Contents
 
 - [Installation](#installation)
@@ -31,14 +39,6 @@ Developer documentation is available at [GitHub Pages](https://chengchuu.github.
   - [Configuration File Options](#configuration-file-options)
   - [Environment Variables](#environment-variables)
 - [User Guides](#user-guides)
-
-## Features
-
-- Upload and download files or directories recursively.
-- CLI usage with clear `<source> <destination>` operands.
-- ESM `import` and CommonJS `require` support.
-- JSON configuration files, named profiles, and configured jobs.
-- Reusable transfer client.
 
 ## Installation
 
