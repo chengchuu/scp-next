@@ -42,6 +42,8 @@ Download   Remote  Local
 - `src/errors`: public typed errors.
 - `src/types`: public TypeScript types.
 - `tests`: Vitest unit and mock-transport integration tests.
+- `docs`: architecture notes and release notes.
+- `site`: GitHub Pages documentation site.
 
 Keep CLI concerns out of the library layer. The library must not call `process.exit()`.
 
@@ -157,13 +159,24 @@ Important existing test areas:
 
 ## Documentation Expectations
 
-Update `README.md` and `docs/ARCHITECTURE.md` when changing:
+Documentation is split by audience:
+
+- `README.md`: primary npm and GitHub usage guide.
+- `docs/ARCHITECTURE.md`: implementation and dependency architecture.
+- `docs/release-notes/`: long-form release announcements.
+- `CHANGELOG.md`: concise version history.
+- `site/`: GitHub Pages documentation for browser-based project docs.
+
+Update `README.md`, `docs/ARCHITECTURE.md`, and `site/` when changing:
 
 - CLI syntax or options
 - configuration format or precedence
 - public API names or types
 - authentication or host verification behavior
 - transfer mechanism or dependency limitations
+
+Add or update files under `docs/release-notes/` for long-form release notes. Do not create a
+root-level `release-notes/` directory.
 
 README examples must not contain real credentials.
 
