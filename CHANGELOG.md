@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.19
+
+- Refined README structure for clearer installation, quick start, basic usage, advanced usage,
+  library options, and configuration guidance.
+- Improved password-first examples while keeping security warnings and safer authentication
+  recommendations visible.
+- Clarified SSH agent usage, `SSH_AUTH_SOCK`, timeout behavior, and configuration-file
+  recommendations.
+- Expanded GitHub Pages documentation with CLI, library, and configuration options.
+- Moved release notes under `docs/release-notes/` for cleaner documentation organization.
+
 ## 1.0.14
 
 - Production-ready `scp-next` TypeScript CLI and library.
