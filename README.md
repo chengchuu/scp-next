@@ -31,7 +31,7 @@ Developer documentation is available at [GitHub Pages](https://chengchuu.github.
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Basic Usage](#basic-usage)
+- [CLI Usage](#cli-usage)
   - [CLI Options](#cli-options)
 - [Library Usage](#library-usage)
   - [Library Options](#library-options)
@@ -100,7 +100,7 @@ await upload({
 });
 ```
 
-## Basic Usage
+## CLI Usage
 
 ### CLI Syntax
 
