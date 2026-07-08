@@ -167,6 +167,22 @@ Documentation is split by audience:
 - `CHANGELOG.md`: concise version history.
 - `site/`: GitHub Pages documentation for browser-based project docs.
 
+README and site structure should stay aligned:
+
+- Put `Features` near the top, before `Contents` in the README and before install content on
+  the site.
+- Use `CLI Usage`, not `Basic Usage`, for command-line syntax, examples, operands, and options.
+- Keep `User Guides` linked to the English and Simplified Chinese files under
+  `docs/release-notes/`.
+- Keep password examples visible early for common user workflows, while also warning that CLI
+  password arguments may appear in shell history or process listings.
+- Document `--timeout` and `timeout` as the SSH connection ready timeout / `readyTimeout`; do
+  not describe it as a total transfer or per-file operation timeout.
+- Recommend `scp-next.config.json` in the current directory, and mention that `.scp-nextrc` and
+  `.scp-nextrc.json` are auto-detected.
+- Include `SSH_AUTH_SOCK` wherever environment variables or SSH agent authentication are
+  documented.
+
 Update `README.md`, `docs/ARCHITECTURE.md`, and `site/` when changing:
 
 - CLI syntax or options

@@ -27,13 +27,15 @@
 
         <nav aria-label="Documentation">
           <p class="nav-label">Start</p>
+          <a class="nav-link" href="#features">Features</a>
           <a class="nav-link" href="#install">Install</a>
           <a class="nav-link" href="#quick-start">Quick Start</a>
-          <a class="nav-link" href="#basic-usage">Basic Usage</a>
+          <a class="nav-link" href="#cli-usage">CLI Usage</a>
           <a class="nav-link" href="#library">Library API</a>
 
           <p class="nav-label">Operate</p>
           <a class="nav-link" href="#advanced-usage">Advanced Usage</a>
+          <a class="nav-link" href="#user-guides">User Guides</a>
           <a class="nav-link" href="#security">Security</a>
           <a class="nav-link" href="#architecture">Architecture</a>
         </nav>
@@ -71,6 +73,36 @@
               it.
             </figcaption>
           </figure>
+        </section>
+
+        <section id="features" class="section" aria-labelledby="features-title">
+          <h2 id="features-title">Features</h2>
+          <div class="grid">
+            <div class="tile">
+              <h3>Files and directories</h3>
+              <p>Upload and download files or directories recursively.</p>
+            </div>
+            <div class="tile">
+              <h3>Clear CLI operands</h3>
+              <p>Use familiar <code>&lt;source&gt; &lt;destination&gt;</code> order.</p>
+            </div>
+            <div class="tile">
+              <h3>ESM and CommonJS</h3>
+              <p>Use the library through ESM <code>import</code> or CommonJS require.</p>
+            </div>
+            <div class="tile">
+              <h3>Reusable config</h3>
+              <p>Use JSON configuration files, named profiles, and configured jobs.</p>
+            </div>
+            <div class="tile">
+              <h3>Reusable client</h3>
+              <p>Create one client, run multiple transfers, then close it reliably.</p>
+            </div>
+            <div class="tile">
+              <h3>Security-conscious</h3>
+              <p>Use SFTP internally and redact credentials from logs and errors.</p>
+            </div>
+          </div>
         </section>
 
         <section id="install" class="section narrow" aria-labelledby="install-title">
@@ -130,8 +162,8 @@ await upload({
           </div>
         </section>
 
-        <section id="basic-usage" class="section" aria-labelledby="basic-usage-title">
-          <h2 id="basic-usage-title">Basic Usage</h2>
+        <section id="cli-usage" class="section" aria-labelledby="cli-usage-title">
+          <h2 id="cli-usage-title">CLI Usage</h2>
           <p>
             Commands use the standard operand order:
             <code>&lt;source&gt; &lt;destination&gt; [options]</code>.
@@ -259,7 +291,7 @@ await upload({
                 </tr>
                 <tr>
                   <td><code>--timeout &lt;milliseconds&gt;</code></td>
-                  <td>Connection and operation timeout.</td>
+                  <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
                   <td><code>--verbose</code></td>
@@ -280,6 +312,11 @@ await upload({
               </tbody>
             </table>
           </div>
+          <p style="margin-top: 14px">
+            <code>--timeout</code> maps to the SSH <code>readyTimeout</code>. It controls
+            how long to wait for the connection handshake, not the duration of each file
+            transfer or the whole transfer run.
+          </p>
         </section>
 
         <section id="library" class="section" aria-labelledby="library-title">
@@ -455,7 +492,7 @@ await upload({
                 <tr>
                   <td><code>timeout</code></td>
                   <td>server/transfer</td>
-                  <td>Connection and operation timeout in milliseconds.</td>
+                  <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
                   <td><code>onProgress</code></td>
@@ -485,7 +522,7 @@ await upload({
     "host": "your-host",
     "port": 22,
     "username": "your-username",
-    "privateKeyFile": "~/.ssh/id_ed25519"
+    "password": "your-password"
   },
   "transfer": {
     "recursive": true,
@@ -526,6 +563,11 @@ await upload({
           </div>
 
           <h3 style="margin-top: 24px">Configuration File Options</h3>
+          <p>
+            Use <code>scp-next.config.json</code> in the current directory.
+            <code>scp-next</code> also auto-detects rc-style filenames:
+            <code>.scp-nextrc</code> and <code>.scp-nextrc.json</code>.
+          </p>
           <div class="table-wrap">
             <table>
               <thead>
@@ -612,7 +654,7 @@ await upload({
                 </tr>
                 <tr>
                   <td><code>timeout</code></td>
-                  <td>Connection timeout in milliseconds.</td>
+                  <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
                   <td><code>hostFingerprint</code></td>
@@ -680,7 +722,61 @@ await upload({
                 <tr>
                   <td><code>timeout</code></td>
                   <td>transfer/jobs</td>
-                  <td>Operation timeout in milliseconds.</td>
+                  <td>SSH connection ready timeout in milliseconds.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 24px">Environment Variables</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>SCP_NEXT_HOST</code></td>
+                  <td>SSH server host.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PORT</code></td>
+                  <td>SSH server port.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_USERNAME</code></td>
+                  <td>SSH username.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PASSWORD</code></td>
+                  <td>SSH password.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PRIVATE_KEY</code></td>
+                  <td>Private-key content.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PRIVATE_KEY_FILE</code></td>
+                  <td>Private-key file path.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PASSPHRASE</code></td>
+                  <td>Passphrase for an encrypted private key.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_TIMEOUT</code></td>
+                  <td>SSH connection ready timeout in milliseconds.</td>
+                </tr>
+                <tr>
+                  <td><code>SCP_NEXT_PROFILE</code></td>
+                  <td>Named configuration profile.</td>
+                </tr>
+                <tr>
+                  <td><code>SSH_AUTH_SOCK</code></td>
+                  <td>SSH agent socket used when agent authentication is available.</td>
                 </tr>
               </tbody>
             </table>
@@ -696,6 +792,35 @@ await upload({
             <li>Configured job values</li>
             <li>Internal defaults</li>
           </ol>
+        </section>
+
+        <section id="user-guides" class="section" aria-labelledby="user-guides-title">
+          <h2 id="user-guides-title">User Guides</h2>
+          <p>
+            Read the versioned user guides for a fuller introduction to installation, CLI
+            transfers, configuration files, credential handling, library usage, and
+            onboarding.
+          </p>
+          <div class="grid">
+            <div class="tile">
+              <h3>English</h3>
+              <p>
+                <a
+                  href="https://github.com/chengchuu/scp-next/blob/main/docs/release-notes/introducing-scp-next-v1.0.19-en.md"
+                  >Introducing scp-next v1.0.19</a
+                >
+              </p>
+            </div>
+            <div class="tile">
+              <h3>简体中文</h3>
+              <p>
+                <a
+                  href="https://github.com/chengchuu/scp-next/blob/main/docs/release-notes/introducing-scp-next-v1.0.19-zh.md"
+                  >scp-next v1.0.19 项目介绍</a
+                >
+              </p>
+            </div>
+          </div>
         </section>
 
         <section id="security" class="section" aria-labelledby="security-title">

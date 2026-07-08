@@ -2,7 +2,7 @@
 
 ![scp-next](http://blog.mazey.net/wp-content/uploads/2026/07/scp-next-SF-s7x3.jpg)
 
-介绍 scp-next v1.0.19 的 npm 安装、CLI 上传下载、配置文件、凭据安全、库 API 和新人接手流程。
+介绍 scp-next v1.0.19 的 npm 安装、CLI 上传下载、配置文件、凭据安全、库 API 和新人使用流程。
 
 - [前言](#前言)
 - [适合谁使用](#适合谁使用)
@@ -49,7 +49,7 @@ npm install scp-next
 
 命令行统一使用 `<source> <destination>` 两个位置参数。
 
-```text
+```plain
 scp-next upload <source> <destination> [options]
 scp-next download <source> <destination> [options]
 scp-next run <job> [source] [destination] [options]
@@ -151,7 +151,7 @@ scp-next upload ./dist /var/www/example \
 
 CLI 会自动查找以下配置文件。
 
-```text
+```plain
 scp-next.config.json
 .scp-nextrc
 .scp-nextrc.json
