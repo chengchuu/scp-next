@@ -6,6 +6,7 @@ dist/
 dist-dev/
 lib/
 coverage/
+docs/
 tests/.tmp/
 
 # Test reports

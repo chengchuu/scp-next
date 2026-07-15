@@ -1,5 +1,6 @@
 dist
 coverage
+docs
 node_modules
 lib
 package-lock.json

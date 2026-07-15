@@ -9,7 +9,7 @@
 - Clarified SSH agent usage, `SSH_AUTH_SOCK`, timeout behavior, and configuration-file
   recommendations.
 - Expanded GitHub Pages documentation with CLI, library, and configuration options.
-- Moved release notes under `docs/release-notes/` for cleaner documentation organization.
+- Moved release notes under `guides/release-notes/` for cleaner documentation organization.
 
 ## 1.0.14
 

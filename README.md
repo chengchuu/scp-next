@@ -593,8 +593,8 @@ The optional generic `copy()` API accepts typed local/remote endpoint objects.
 
 ## User Guides
 
-- [English](https://github.com/chengchuu/scp-next/blob/main/docs/release-notes/introducing-scp-next-v1.0.19-en.md)
-- [简体中文](https://github.com/chengchuu/scp-next/blob/main/docs/release-notes/introducing-scp-next-v1.0.19-zh.md)
+- [English](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-en.md)
+- [简体中文](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-zh.md)
 
 ## Development
 
@@ -604,6 +604,8 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run docs:links
+npm run docs:build
 npm pack --dry-run
 ```
 
@@ -611,7 +613,9 @@ npm pack --dry-run
 
 ## Publishing
 
-The published package includes `dist`, README, license, changelog, and docs. The CLI entry is `dist/cli/index.js` and contains a Node.js shebang.
+The published package includes `dist`, README, license, changelog, and handwritten guides. The CLI
+entry is `dist/cli/index.js` and contains a Node.js shebang. `npm run docs:build` generates the
+GitHub Pages artifact under `docs/`; do not edit or commit that output directly.
 
 ## Transfer Mechanism
 
