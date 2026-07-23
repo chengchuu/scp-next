@@ -34,6 +34,6 @@ export function createRunCommand(handlers: TransferHandlers, output: Output, cwd
       }
     );
 
-  addTransferOptions(command);
+  addTransferOptions(command, { afterUpload: true });
   return command;
 }

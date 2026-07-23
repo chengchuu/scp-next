@@ -3,12 +3,17 @@ import path from "node:path";
 
 import { Ssh2SftpTransport } from "./transport.js";
 import type { SftpTransport } from "./transport.js";
+import { SshCommandExecutor } from "./command-executor.js";
+import type { CommandExecutor } from "./command-executor.js";
 import { walkLocalFiles, walkRemoteFiles } from "./walk.js";
-import { TransferError, ValidationError } from "../errors/index.js";
+import { RemoteCommandError, TransferError, ValidationError } from "../errors/index.js";
 import { getLocalPathKind, resolveLocalPath } from "../paths/local-path.js";
+import { redactKnownSensitiveValues } from "../security/redact.js";
 import { normalizeRemotePath, remoteDirname, remoteJoin } from "../paths/remote-path.js";
 import type {
   DownloadOptions,
+  ExecOptions,
+  ExecResult,
   ScpNextClient,
   ScpServerOptions,
   TransferOptions,
@@ -22,6 +27,7 @@ import {
 
 export interface ScpNextClientDependencies {
   transport?: SftpTransport;
+  commandExecutor?: CommandExecutor;
 }
 
 function percentage(transferredBytes: number, totalBytes?: number): number | undefined {
@@ -82,11 +88,14 @@ async function ensureLocalDirectory(localPath: string, createParents = false): P
 export class ScpNextClientImpl implements ScpNextClient {
   private readonly serverOptions: ScpServerOptions;
   private readonly transport: SftpTransport;
+  private readonly commandExecutor: CommandExecutor;
   private connected = false;
+  private commandExecutorConnected = false;
 
   constructor(serverOptions: ScpServerOptions, dependencies: ScpNextClientDependencies = {}) {
     this.serverOptions = serverOptions;
     this.transport = dependencies.transport ?? new Ssh2SftpTransport();
+    this.commandExecutor = dependencies.commandExecutor ?? new SshCommandExecutor();
   }
 
   async connect(): Promise<void> {
@@ -99,7 +108,7 @@ export class ScpNextClientImpl implements ScpNextClient {
     localPath: string,
     remotePath: string,
     options: TransferOptions = {}
-  ): Promise<void> {
+  ): Promise<ExecResult[]> {
     const uploadOptions: UploadOptions = {
       ...mergeOptions(this.serverOptions, options),
       localPath,
@@ -108,11 +117,16 @@ export class ScpNextClientImpl implements ScpNextClient {
     await validateUploadOptions(uploadOptions);
 
     if (options.dryRun) {
-      return;
+      return [];
     }
 
     await this.ensureConnected();
     await this.uploadWithTransport(uploadOptions);
+    const results: ExecResult[] = [];
+    for (const command of options.afterUpload ?? []) {
+      results.push(await this.exec(command));
+    }
+    return results;
   }
 
   async download(
@@ -135,16 +149,84 @@ export class ScpNextClientImpl implements ScpNextClient {
     await this.downloadWithTransport(downloadOptions);
   }
 
+  async exec(command: string, options: ExecOptions = {}): Promise<ExecResult> {
+    if (typeof command !== "string" || !command.trim()) {
+      throw new ValidationError("Remote command must not be empty.");
+    }
+    if (options.timeout !== undefined && (!Number.isFinite(options.timeout) || options.timeout <= 0)) {
+      throw new ValidationError("Command timeout must be a positive number.");
+    }
+    if (
+      options.maxBuffer !== undefined &&
+      (!Number.isInteger(options.maxBuffer) || options.maxBuffer <= 0)
+    ) {
+      throw new ValidationError("Command maxBuffer must be a positive integer.");
+    }
+    if (
+      options.failOnStderr !== undefined &&
+      typeof options.failOnStderr !== "boolean"
+    ) {
+      throw new ValidationError("Command failOnStderr must be a boolean.");
+    }
+
+    await this.ensureCommandExecutorConnected();
+    let result: ExecResult;
+    try {
+      result = await this.commandExecutor.exec(command, options);
+    } catch (error) {
+      if (error instanceof RemoteCommandError) {
+        throw new RemoteCommandError(error.message, {
+          exitCode: error.exitCode,
+          signal: error.signal,
+          stdout: redactKnownSensitiveValues(error.stdout, this.serverOptions),
+          stderr: redactKnownSensitiveValues(error.stderr, this.serverOptions)
+        });
+      }
+      throw error;
+    }
+    if (result.exitCode !== 0 || (options.failOnStderr && result.stderr.length > 0)) {
+      const reason =
+        result.exitCode === null
+          ? "Remote command ended without an exit code."
+          : result.exitCode !== 0
+          ? `Remote command failed with exit code ${String(result.exitCode)}.`
+          : "Remote command wrote to stderr.";
+      throw new RemoteCommandError(reason, {
+        exitCode: result.exitCode,
+        signal: result.signal,
+        stdout: redactKnownSensitiveValues(result.stdout, this.serverOptions),
+        stderr: redactKnownSensitiveValues(result.stderr, this.serverOptions)
+      });
+    }
+    return result;
+  }
+
   async close(): Promise<void> {
-    if (this.connected) {
-      await this.transport.close();
-      this.connected = false;
+    const closures: Promise<void>[] = [];
+    if (this.connected) closures.push(this.transport.close());
+    if (this.commandExecutorConnected) closures.push(this.commandExecutor.close());
+    const results = await Promise.allSettled(closures);
+    this.connected = false;
+    this.commandExecutorConnected = false;
+    const failure = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+    if (failure) {
+      throw failure.reason;
     }
   }
 
   private async ensureConnected(): Promise<void> {
     if (!this.connected) {
       await this.connect();
+    }
+  }
+
+  private async ensureCommandExecutorConnected(): Promise<void> {
+    if (!this.commandExecutorConnected) {
+      await validateServerOptions(this.serverOptions);
+      await this.commandExecutor.connect(this.serverOptions);
+      this.commandExecutorConnected = true;
     }
   }
 

@@ -11,6 +11,10 @@ const SENSITIVE_KEYS = [
 
 const PRIVATE_KEY_PATTERN =
   /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g;
+const SECRET_OPTION_PATTERN =
+  /(--(?:password|passphrase|token|secret|authorization|credential)(?:=|\s+))(?:"[^"]*"|'[^']*'|\S+)/gi;
+const SECRET_ASSIGNMENT_PATTERN =
+  /(\b(?:password|passphrase|token|secret|authorization|credential)[A-Z0-9_-]*\s*=\s*)(?:"[^"]*"|'[^']*'|[^\s&]+)/gi;
 
 function isSensitiveKey(key: string): boolean {
   const normalized = key.replace(/[-_\s]/g, "").toLowerCase();
@@ -40,7 +44,41 @@ export function redactSensitiveValues(value: unknown): unknown {
 
 export function formatErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return String(redactSensitiveValues(error.message));
+    return redactKnownSensitiveValues(error.message, {});
   }
-  return String(redactSensitiveValues(error));
+  return redactKnownSensitiveValues(String(error), {});
+}
+
+export function redactKnownSensitiveValues(
+  text: string,
+  source: object
+): string {
+  const sensitiveValues = collectSensitiveValues(source);
+  const redactedKnownValues = sensitiveValues.reduce(
+    (redacted, value) => redacted.split(value).join("[REDACTED]"),
+    String(redactSensitiveValues(text))
+  );
+  return redactedKnownValues
+    .replace(SECRET_OPTION_PATTERN, "$1[REDACTED]")
+    .replace(SECRET_ASSIGNMENT_PATTERN, "$1[REDACTED]");
+}
+
+function collectSensitiveValues(value: unknown, key = ""): string[] {
+  if (isSensitiveKey(key)) {
+    if (typeof value === "string" && value) {
+      return [value];
+    }
+    if (Buffer.isBuffer(value) && value.length > 0) {
+      return [value.toString("utf8")];
+    }
+    return [];
+  }
+
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  return Object.entries(value).flatMap(([nestedKey, nestedValue]) =>
+    collectSensitiveValues(nestedValue, nestedKey)
+  );
 }

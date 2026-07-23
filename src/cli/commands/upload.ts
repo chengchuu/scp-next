@@ -28,6 +28,6 @@ export function createUploadCommand(handlers: TransferHandlers, output: Output, 
       await executeResolvedTransfer(resolved, handlers, output, options);
     });
 
-  addTransferOptions(command);
+  addTransferOptions(command, { afterUpload: true });
   return command;
 }

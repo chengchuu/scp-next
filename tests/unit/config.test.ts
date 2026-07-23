@@ -105,7 +105,8 @@ describe("configuration loading and precedence", () => {
             profile: "production",
             source: "./dist",
             destination: "/var/www/example",
-            recursive: true
+            recursive: true,
+            afterUpload: ["npm install --omit=dev", "pm2 reload example"]
           }
         }
       }
@@ -116,6 +117,43 @@ describe("configuration loading and precedence", () => {
     expect(resolved.destination).toBe("/var/www/example");
     expect(resolved.host).toBe("production.example.com");
     expect(resolved.recursive).toBe(true);
+    expect(resolved.afterUpload).toEqual([
+      "npm install --omit=dev",
+      "pm2 reload example"
+    ]);
+  });
+
+  it("ignores upload-only transfer defaults for downloads", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "/var/log/example.log",
+      destination: "./example.log",
+      config: {
+        transfer: {
+          afterUpload: ["should-not-run"]
+        }
+      }
+    });
+
+    expect(resolved.afterUpload).toBeUndefined();
+  });
+
+  it("rejects post-upload commands configured directly on download jobs", () => {
+    expect(() =>
+      resolveTransferConfig({
+        jobName: "download-logs",
+        config: {
+          jobs: {
+            "download-logs": {
+              operation: "download",
+              source: "/var/log/example.log",
+              destination: "./example.log",
+              afterUpload: ["should-not-run"]
+            }
+          }
+        }
+      })
+    ).toThrow("Post-upload commands are not supported for downloads.");
   });
 
   it("fails safely for invalid profiles and jobs", () => {

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { redactSensitiveValues } from "../../src/security/redact.js";
+import {
+  redactKnownSensitiveValues,
+  redactSensitiveValues
+} from "../../src/security/redact.js";
 
 describe("redactSensitiveValues", () => {
   it("redacts secrets recursively", () => {
@@ -21,5 +24,13 @@ describe("redactSensitiveValues", () => {
         privateKey: "[REDACTED]"
       }
     });
+  });
+
+  it("redacts sensitive Buffer values from command output", () => {
+    expect(
+      redactKnownSensitiveValues("key material", {
+        privateKey: Buffer.from("key material")
+      })
+    ).toBe("[REDACTED]");
   });
 });

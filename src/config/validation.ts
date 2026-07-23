@@ -27,6 +27,20 @@ function validateTimeout(timeout: number | undefined): void {
   }
 }
 
+function validateAfterUpload(commands: unknown): void {
+  if (commands === undefined) {
+    return;
+  }
+  if (
+    !Array.isArray(commands) ||
+    commands.some((command) => typeof command !== "string" || !command.trim())
+  ) {
+    throw new ValidationError(
+      "afterUpload must be an array of non-empty command strings."
+    );
+  }
+}
+
 export async function validateServerOptions(options: ScpServerOptions): Promise<void> {
   if (!options.host) {
     throw new ValidationError("Host is required.");
@@ -72,6 +86,7 @@ export async function validateUploadOptions(options: UploadOptions): Promise<voi
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
+  validateAfterUpload(options.afterUpload);
   await assertLocalPathExists(options.localPath);
 
   if (!options.dryRun) {
@@ -88,6 +103,9 @@ export async function validateDownloadOptions(options: DownloadOptions): Promise
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
+  if (options.afterUpload?.length) {
+    throw new ValidationError("Post-upload commands are not supported for downloads.");
+  }
   await assertDownloadDestination(options.localPath, options.createDirectories ?? true);
 
   if (!options.dryRun) {

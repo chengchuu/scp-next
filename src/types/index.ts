@@ -18,7 +18,27 @@ export interface TransferOptions {
   createDirectories?: boolean | undefined;
   dryRun?: boolean | undefined;
   timeout?: number | undefined;
+  /** Remote command strings run sequentially only after a successful upload. */
+  afterUpload?: string[] | undefined;
   onProgress?: ((progress: TransferProgress) => void) | undefined;
+}
+
+export interface ExecOptions {
+  /** Maximum time to wait for completion before closing the SSH channel. */
+  timeout?: number | undefined;
+  /** Maximum combined stdout and stderr size in bytes. Defaults to 10 MiB. */
+  maxBuffer?: number | undefined;
+  /** Treat any stderr output as failure even when the exit code is zero. */
+  failOnStderr?: boolean | undefined;
+}
+
+/** Captured result from one remote SSH command. */
+export interface ExecResult {
+  command: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number | null;
+  signal?: string | undefined;
 }
 
 export interface TransferProgress {
@@ -45,8 +65,9 @@ export interface DownloadOptions extends ScpServerOptions, TransferOptions {
 
 export interface ScpNextClient {
   connect(): Promise<void>;
-  upload(localPath: string, remotePath: string, options?: TransferOptions): Promise<void>;
+  upload(localPath: string, remotePath: string, options?: TransferOptions): Promise<ExecResult[]>;
   download(remotePath: string, localPath: string, options?: TransferOptions): Promise<void>;
+  exec(command: string, options?: ExecOptions): Promise<ExecResult>;
   close(): Promise<void>;
 }
 
@@ -79,6 +100,7 @@ export interface TransferJob {
   createDirectories?: boolean | undefined;
   dryRun?: boolean | undefined;
   timeout?: number | undefined;
+  afterUpload?: string[] | undefined;
 }
 
 export interface ScpNextConfig {

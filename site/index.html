@@ -99,6 +99,10 @@
               <p>Create one client, run multiple transfers, then close it reliably.</p>
             </div>
             <div class="tile">
+              <h3>Post-upload commands</h3>
+              <p>Optionally run sequential remote commands after a successful upload.</p>
+            </div>
+            <div class="tile">
               <h3>Security-conscious</h3>
               <p>Use SFTP internally and redact credentials from logs and errors.</p>
             </div>
@@ -222,6 +226,15 @@ await upload({
   --password your-password</code></pre>
             </div>
           </div>
+          <div style="margin-top: 18px">
+            <p class="code-label">Upload, install, and reload</p>
+            <pre><code>scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --recursive \
+  --after-upload "cd /var/www/example &amp;&amp; npm install --omit=dev" \
+  --after-upload "pm2 reload example"</code></pre>
+          </div>
 
           <h3 style="margin-top: 24px">CLI Options</h3>
           <div class="table-wrap">
@@ -288,6 +301,10 @@ await upload({
                 <tr>
                   <td><code>--dry-run</code></td>
                   <td>Resolve and validate without connecting or transferring.</td>
+                </tr>
+                <tr>
+                  <td><code>--after-upload &lt;command&gt;</code></td>
+                  <td>Run a remote command after a successful upload. Repeatable.</td>
                 </tr>
                 <tr>
                   <td><code>--timeout &lt;milliseconds&gt;</code></td>
@@ -374,6 +391,8 @@ try {
   await client.upload("./dist", "/var/www/example", {
     recursive: true
   });
+  const result = await client.exec("pm2 reload example");
+  console.log(result.stdout);
 } finally {
               await client.close();
 }</code></pre>
@@ -495,6 +514,14 @@ await upload({
                   <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
+                  <td><code>afterUpload</code></td>
+                  <td>upload</td>
+                  <td>
+                    Remote command strings run sequentially after upload success and stop
+                    on a non-zero or missing exit status.
+                  </td>
+                </tr>
+                <tr>
                   <td><code>onProgress</code></td>
                   <td>transfer</td>
                   <td>Progress callback for files and directory transfers.</td>
@@ -502,6 +529,12 @@ await upload({
               </tbody>
             </table>
           </div>
+          <p style="margin-top: 14px">
+            <code>client.exec()</code> accepts a command-specific <code>timeout</code>,
+            <code>failOnStderr</code>, and <code>maxBuffer</code>. Captured stdout and
+            stderr are limited to 10 MiB by default. A timeout closes the SSH channel;
+            remote process termination depends on the SSH server.
+          </p>
         </section>
 
         <section
@@ -541,7 +574,11 @@ await upload({
       "profile": "production",
       "source": "./dist",
       "destination": "/var/www/example",
-      "recursive": true
+      "recursive": true,
+      "afterUpload": [
+        "cd /var/www/example &amp;&amp; npm install --omit=dev",
+        "pm2 reload example"
+      ]
     }
   }
 }</code></pre>
@@ -724,6 +761,11 @@ await upload({
                   <td>transfer/jobs</td>
                   <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
+                <tr>
+                  <td><code>afterUpload</code></td>
+                  <td>transfer/upload jobs</td>
+                  <td>Remote commands run in order after a successful upload.</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -827,8 +869,8 @@ await upload({
           <h2 id="security-title">Security</h2>
           <ul class="security-list">
             <li>
-              Transfers use SFTP through `ssh2-sftp-client`; normal transfers do not run
-              remote shell commands.
+              Transfers use SFTP through `ssh2-sftp-client`; remote shell execution is
+              isolated and opt-in through `exec()` or `afterUpload`.
             </li>
             <li>
               Passwords, passphrases, private-key contents, and tokens are redacted from
@@ -844,7 +886,11 @@ await upload({
             </li>
             <li>
               Dry-run mode resolves and validates a transfer plan without connecting or
-              modifying files.
+              modifying files or executing remote commands.
+            </li>
+            <li>
+              Remote commands run with the SSH user's permissions. Do not place secrets
+              directly in command strings.
             </li>
           </ul>
         </section>
@@ -871,6 +917,13 @@ await upload({
               <p>
                 Keeps SFTP access mockable, which lets integration tests run without a
                 production server.
+              </p>
+            </div>
+            <div class="tile">
+              <h3>Command boundary</h3>
+              <p>
+                Keeps explicit SSH command execution separate from the SFTP transport and
+                mockable in tests.
               </p>
             </div>
           </div>

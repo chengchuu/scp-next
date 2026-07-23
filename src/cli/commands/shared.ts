@@ -1,4 +1,5 @@
 import { Option } from "commander";
+import type { Command } from "commander";
 
 import { readEnvironment } from "../../config/environment.js";
 import { loadConfig } from "../../config/load-config.js";
@@ -8,8 +9,10 @@ import {
 } from "../../config/resolve-config.js";
 import type { Output } from "../output.js";
 import { createProgressReporter, verbosePlan, writeDryRun } from "../output.js";
+import { writeCommandResults } from "../output.js";
 import type {
   DownloadOptions,
+  ExecResult,
   ResolvedTransferConfig,
   TransferOperation,
   UploadOptions
@@ -32,14 +35,18 @@ export interface RawCommandOptions {
   timeout?: number;
   verbose?: boolean;
   quiet?: boolean;
+  afterUpload?: string[];
 }
 
 export interface TransferHandlers {
-  upload(options: UploadOptions): Promise<void>;
+  upload(options: UploadOptions): Promise<ExecResult[]>;
   download(options: DownloadOptions): Promise<void>;
 }
 
-export function addTransferOptions(command: { option: (flags: string, description: string) => unknown; addOption: (option: Option) => unknown }) {
+export function addTransferOptions(
+  command: Command,
+  options: { afterUpload?: boolean } = {}
+) {
   command.option("--host <host>", "SSH server host");
   command.addOption(new Option("--port <port>", "SSH server port").argParser(parseInteger));
   command.option("--username <username>", "SSH username");
@@ -54,9 +61,20 @@ export function addTransferOptions(command: { option: (flags: string, descriptio
   command.option("--create-directories", "Create missing destination directories");
   command.option("--no-create-directories", "Do not create missing destination directories");
   command.option("--dry-run", "Resolve and validate without connecting or transferring");
-  command.addOption(new Option("--timeout <milliseconds>", "Connection/operation timeout").argParser(parseInteger));
+  command.addOption(
+    new Option("--timeout <milliseconds>", "SSH connection ready timeout").argParser(
+      parseInteger
+    )
+  );
   command.option("--verbose", "Print verbose diagnostic output");
   command.option("--quiet", "Disable progress and non-error output");
+  if (options.afterUpload) {
+    command.option(
+      "--after-upload <command>",
+      "Run a remote command after a successful upload (repeatable)",
+      collectValues
+    );
+  }
   return command;
 }
 
@@ -66,6 +84,10 @@ function parseInteger(value: string): number {
     throw new Error("Expected a number.");
   }
   return parsed;
+}
+
+function collectValues(value: string, previous: string[] | undefined): string[] {
+  return [...(previous ?? []), value];
 }
 
 function toCliOptions(options: RawCommandOptions): CliTransferOptions {
@@ -82,7 +104,8 @@ function toCliOptions(options: RawCommandOptions): CliTransferOptions {
     overwrite: options.overwrite,
     createDirectories: options.createDirectories,
     dryRun: options.dryRun,
-    timeout: options.timeout
+    timeout: options.timeout,
+    afterUpload: options.afterUpload
   };
 }
 
@@ -134,7 +157,10 @@ export async function executeResolvedTransfer(
       remotePath: config.destination
     };
     if (onProgress) uploadOptions.onProgress = onProgress;
-    await handlers.upload(uploadOptions);
+    const results = await handlers.upload(uploadOptions);
+    if (!commandOptions.quiet) {
+      writeCommandResults(output, results, config);
+    }
     return;
   }
 

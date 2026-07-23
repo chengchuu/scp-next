@@ -6,6 +6,7 @@ import {
   TransferError,
   toScpNextError
 } from "../../src/errors/index.js";
+import { formatErrorMessage } from "../../src/security/redact.js";
 
 describe("error conversion", () => {
   it("converts authentication failures", () => {
@@ -24,5 +25,11 @@ describe("error conversion", () => {
     );
     expect(error).toBeInstanceOf(TransferError);
     expect(error.message).toContain("[REDACTED]");
+  });
+
+  it("redacts recognizable secret assignments in error messages", () => {
+    expect(formatErrorMessage(new Error("deploy failed: TOKEN=do-not-print"))).toBe(
+      "deploy failed: TOKEN=[REDACTED]"
+    );
   });
 });

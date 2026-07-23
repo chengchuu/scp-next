@@ -1,5 +1,12 @@
-import type { ResolvedTransferConfig, TransferProgress } from "../types/index.js";
-import { redactSensitiveValues } from "../security/redact.js";
+import type {
+  ExecResult,
+  ResolvedTransferConfig,
+  TransferProgress
+} from "../types/index.js";
+import {
+  redactKnownSensitiveValues,
+  redactSensitiveValues
+} from "../security/redact.js";
 
 export interface Output {
   stdout: NodeJS.WritableStream & { isTTY?: boolean };
@@ -17,6 +24,36 @@ export function writeDryRun(output: Output, config: ResolvedTransferConfig): voi
   output.stdout.write(`Destination: ${destination}\n`);
   output.stdout.write(`Recursive: ${config.recursive ? "yes" : "no"}\n`);
   output.stdout.write(`Overwrite: ${config.overwrite ? "yes" : "no"}\n`);
+  if (config.operation === "upload" && config.afterUpload?.length) {
+    output.stdout.write("\nPost-upload commands:\n");
+    config.afterUpload.forEach((command, index) => {
+      output.stdout.write(
+        `${index + 1}. ${redactKnownSensitiveValues(command, config)}\n`
+      );
+    });
+  }
+}
+
+export function writeCommandResults(
+  output: Output,
+  results: ExecResult[],
+  config: ResolvedTransferConfig
+): void {
+  results.forEach((result, index) => {
+    output.stdout.write(`Remote command ${index + 1} completed successfully.\n`);
+    if (result.stdout) {
+      output.stdout.write(
+        redactKnownSensitiveValues(result.stdout, config)
+      );
+      if (!result.stdout.endsWith("\n")) output.stdout.write("\n");
+    }
+    if (result.stderr) {
+      output.stderr.write(
+        redactKnownSensitiveValues(result.stderr, config)
+      );
+      if (!result.stderr.endsWith("\n")) output.stderr.write("\n");
+    }
+  });
 }
 
 export function createProgressReporter(
@@ -87,7 +124,8 @@ export function verbosePlan(output: Output, config: ResolvedTransferConfig): voi
         recursive: config.recursive,
         overwrite: config.overwrite,
         createDirectories: config.createDirectories,
-        dryRun: config.dryRun
+        dryRun: config.dryRun,
+        afterUpload: config.afterUpload?.map((_command, index) => `command-${index + 1}`)
       }),
       null,
       2

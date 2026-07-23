@@ -26,6 +26,7 @@ Developer documentation is available at [GitHub Pages](https://chengchuu.github.
 - ESM `import` and CommonJS `require` support.
 - JSON configuration files, named profiles, and configured jobs.
 - Reusable transfer client.
+- Optional sequential remote commands after a successful upload.
 
 ## Contents
 
@@ -145,6 +146,21 @@ scp-next upload ./dist /var/www/example \
   --verbose
 ```
 
+Run commands after a successful upload:
+
+```bash
+scp-next upload ./dist /var/www/example \
+  --host your-host \
+  --username your-username \
+  --recursive \
+  --after-upload "cd /var/www/example && npm install --omit=dev" \
+  --after-upload "pm2 reload example"
+```
+
+`--after-upload` is repeatable and upload-only. Commands run sequentially on the remote
+server with the SSH user's permissions. The first non-zero exit code stops the sequence and
+makes the CLI exit non-zero. A missing exit status is also treated as failure.
+
 Use an encrypted private key:
 
 ```bash
@@ -202,6 +218,7 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--create-directories`                | Create missing destination directories. Enabled by default.            |
 | `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
+| `--after-upload <command>`            | Run a remote command after a successful upload. Repeatable.             |
 | `--timeout <milliseconds>`            | SSH connection ready timeout in milliseconds.                          |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |
 | `--quiet`                             | Disable progress and non-error output.                                 |
@@ -224,7 +241,11 @@ await upload({
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
-  overwrite: true
+  overwrite: true,
+  afterUpload: [
+    "cd /var/www/example && npm install --omit=dev",
+    "pm2 reload example"
+  ]
 });
 ```
 
@@ -263,6 +284,8 @@ const client = createClient({
 try {
   await client.connect();
   await client.upload("./dist", "/var/www/example", { recursive: true });
+  const result = await client.exec("pm2 reload example");
+  console.log(result.stdout);
   await client.download("/var/log/example.log", "./logs/example.log");
 } finally {
   await client.close();
@@ -312,7 +335,14 @@ await upload({
 | `createDirectories` | transfer        | Create missing destination directories. Defaults to `true`.  |
 | `dryRun`            | transfer        | Validate and plan without modifying local or remote files.   |
 | `timeout`           | server/transfer | SSH connection ready timeout in milliseconds.                |
+| `afterUpload`       | upload          | Remote command strings run sequentially after success.       |
 | `onProgress`        | transfer        | Progress callback for file and directory transfers.          |
+
+`client.exec(command, options)` returns `ExecResult` with `stdout`, `stderr`, `exitCode`,
+and an optional signal. Its optional `timeout` is command-specific; `failOnStderr` can treat
+stderr output as failure even when the exit code is zero. `maxBuffer` limits combined captured
+output and defaults to 10 MiB. A timeout closes the SSH channel; whether the remote process is
+terminated depends on the SSH server.
 
 ## Advanced Usage
 
@@ -418,7 +448,11 @@ Jobs use `source` and `destination`; the `operation` determines which path is lo
       "source": "./dist",
       "destination": "/var/www/example",
       "recursive": true,
-      "overwrite": true
+      "overwrite": true,
+      "afterUpload": [
+        "cd /var/www/example && npm install --omit=dev",
+        "pm2 reload example"
+      ]
     },
     "download-logs": {
       "operation": "download",
@@ -533,7 +567,7 @@ Interactive terminals display concise progress. Progress is disabled with `--qui
 
 ### Dry Run
 
-`--dry-run` resolves configuration and validates local paths and transfer direction without connecting to the remote server or modifying local/remote files.
+`--dry-run` resolves configuration and validates local paths and transfer direction without connecting to the remote server, transferring files, or executing post-upload commands. Planned post-upload commands are shown with known and recognizable secret values redacted.
 
 ```text
 Dry run: upload
@@ -541,6 +575,10 @@ Source: ./dist
 Destination: your-username@your-host:/var/www/example
 Recursive: yes
 Overwrite: yes
+
+Post-upload commands:
+1. cd /var/www/example && npm install --omit=dev
+2. pm2 reload example
 ```
 
 ## Error Handling
@@ -553,6 +591,7 @@ Public typed errors:
 - `AuthenticationError`
 - `ConnectionError`
 - `TransferError`
+- `RemoteCommandError`
 - `FileSystemError`
 - `HostVerificationError`
 
@@ -582,7 +621,7 @@ try {
 Primary functions:
 
 ```ts
-upload(options: UploadOptions): Promise<void>
+upload(options: UploadOptions): Promise<ExecResult[]>
 download(options: DownloadOptions): Promise<void>
 createClient(options: ScpServerOptions): ScpNextClient
 copy(options: CopyOptions): Promise<void>
@@ -590,6 +629,13 @@ copy(options: CopyOptions): Promise<void>
 
 Upload and download APIs use explicit `localPath` and `remotePath` names.
 The optional generic `copy()` API accepts typed local/remote endpoint objects.
+`ScpNextClient.exec(command, options)` executes one command directly through SSH.
+
+Post-upload execution is disabled unless `afterUpload` is present. Commands are sent directly
+to the remote SSH server, never through a local shell, and never run for downloads or dry runs.
+Do not put passwords, tokens, or other secrets directly in command strings; command output may
+also contain application data. `scp-next` redacts known credentials and common secret assignment
+forms from CLI logs and errors.
 
 ## User Guides
 

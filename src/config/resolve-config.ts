@@ -13,6 +13,7 @@ import type {
 } from "../types/index.js";
 import { resolveLocalPath } from "../paths/local-path.js";
 import { restoreMsysConvertedRemotePath } from "../paths/remote-path.js";
+import { ValidationError } from "../errors/index.js";
 
 export interface CliTransferOptions extends ScpServerOptions, Omit<TransferOptions, "onProgress"> {
   profile?: string | undefined;
@@ -81,7 +82,8 @@ function jobTransfer(job: TransferJob | undefined): Omit<TransferOptions, "onPro
     overwrite: job.overwrite,
     createDirectories: job.createDirectories,
     dryRun: job.dryRun,
-    timeout: job.timeout
+    timeout: job.timeout,
+    afterUpload: job.afterUpload
   });
 }
 
@@ -169,6 +171,18 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
 
   const pathResolved = resolveConfigRelatedPaths(resolved, operation, configDirectory);
 
+  if (
+    pathResolved.afterUpload !== undefined &&
+    (!Array.isArray(pathResolved.afterUpload) ||
+      pathResolved.afterUpload.some(
+        (command) => typeof command !== "string" || !command.trim()
+      ))
+  ) {
+    throw new ValidationError(
+      "afterUpload must be an array of non-empty command strings."
+    );
+  }
+
   if (input.source && operation === "upload") {
     pathResolved.source = resolveLocalPath(input.source, cwd);
   }
@@ -179,6 +193,10 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
 
   if (operation === "download") {
     pathResolved.source = restoreMsysConvertedRemotePath(pathResolved.source);
+    if (job?.afterUpload?.length || cli.afterUpload?.length) {
+      throw new ValidationError("Post-upload commands are not supported for downloads.");
+    }
+    pathResolved.afterUpload = undefined;
   }
 
   if (input.destination && operation === "download") {
