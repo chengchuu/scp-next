@@ -232,8 +232,8 @@ await upload({
   --host your-host \
   --username your-username \
   --recursive \
-  --after-upload "cd /var/www/example &amp;&amp; npm install --omit=dev" \
-  --after-upload "pm2 reload example"</code></pre>
+  --post-upload-command "cd /var/www/example &amp;&amp; npm install --omit=dev" \
+  --post-upload-command "pm2 reload example"</code></pre>
           </div>
 
           <h3 style="margin-top: 24px">CLI Options</h3>
@@ -303,7 +303,7 @@ await upload({
                   <td>Resolve and validate without connecting or transferring.</td>
                 </tr>
                 <tr>
-                  <td><code>--after-upload &lt;command&gt;</code></td>
+                  <td><code>--post-upload-command &lt;command&gt;</code></td>
                   <td>Run a remote command after a successful upload. Repeatable.</td>
                 </tr>
                 <tr>
@@ -373,7 +373,11 @@ await upload({
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
-  overwrite: true
+  overwrite: true,
+  postUploadCommands: [
+    "cd /var/www/example &amp;&amp; npm install --omit=dev",
+    "pm2 reload example"
+  ]
 });</code></pre>
             </div>
             <div>
@@ -514,7 +518,7 @@ await upload({
                   <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
-                  <td><code>afterUpload</code></td>
+                  <td><code>postUploadCommands</code></td>
                   <td>upload</td>
                   <td>
                     Remote command strings run sequentially after upload success and stop
@@ -575,7 +579,7 @@ await upload({
       "source": "./dist",
       "destination": "/var/www/example",
       "recursive": true,
-      "afterUpload": [
+      "postUploadCommands": [
         "cd /var/www/example &amp;&amp; npm install --omit=dev",
         "pm2 reload example"
       ]
@@ -762,7 +766,7 @@ await upload({
                   <td>SSH connection ready timeout in milliseconds.</td>
                 </tr>
                 <tr>
-                  <td><code>afterUpload</code></td>
+                  <td><code>postUploadCommands</code></td>
                   <td>transfer/upload jobs</td>
                   <td>Remote commands run in order after a successful upload.</td>
                 </tr>
@@ -870,7 +874,7 @@ await upload({
           <ul class="security-list">
             <li>
               Transfers use SFTP through `ssh2-sftp-client`; remote shell execution is
-              isolated and opt-in through `exec()` or `afterUpload`.
+              isolated and opt-in through `exec()` or `postUploadCommands`.
             </li>
             <li>
               Passwords, passphrases, private-key contents, and tokens are redacted from

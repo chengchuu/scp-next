@@ -7,6 +7,7 @@ import {
   redactKnownSensitiveValues,
   redactSensitiveValues
 } from "../security/redact.js";
+import { getPostUploadCommands } from "../config/post-upload-commands.js";
 
 export interface Output {
   stdout: NodeJS.WritableStream & { isTTY?: boolean };
@@ -14,6 +15,7 @@ export interface Output {
 }
 
 export function writeDryRun(output: Output, config: ResolvedTransferConfig): void {
+  const postUploadCommands = getPostUploadCommands(config) ?? [];
   const destination =
     config.operation === "upload"
       ? `${config.username ?? "user"}@${config.host ?? "host"}:${config.destination}`
@@ -24,9 +26,9 @@ export function writeDryRun(output: Output, config: ResolvedTransferConfig): voi
   output.stdout.write(`Destination: ${destination}\n`);
   output.stdout.write(`Recursive: ${config.recursive ? "yes" : "no"}\n`);
   output.stdout.write(`Overwrite: ${config.overwrite ? "yes" : "no"}\n`);
-  if (config.operation === "upload" && config.afterUpload?.length) {
+  if (config.operation === "upload" && postUploadCommands.length > 0) {
     output.stdout.write("\nPost-upload commands:\n");
-    config.afterUpload.forEach((command, index) => {
+    postUploadCommands.forEach((command, index) => {
       output.stdout.write(
         `${index + 1}. ${redactKnownSensitiveValues(command, config)}\n`
       );
@@ -112,6 +114,7 @@ export function createProgressReporter(
 }
 
 export function verbosePlan(output: Output, config: ResolvedTransferConfig): void {
+  const postUploadCommands = getPostUploadCommands(config);
   output.stderr.write(
     `${JSON.stringify(
       redactSensitiveValues({
@@ -125,7 +128,9 @@ export function verbosePlan(output: Output, config: ResolvedTransferConfig): voi
         overwrite: config.overwrite,
         createDirectories: config.createDirectories,
         dryRun: config.dryRun,
-        afterUpload: config.afterUpload?.map((_command, index) => `command-${index + 1}`)
+        postUploadCommands: postUploadCommands?.map(
+          (_command, index) => `command-${index + 1}`
+        )
       }),
       null,
       2

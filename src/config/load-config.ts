@@ -29,7 +29,9 @@ const transferSchema = z.object({
   createDirectories: z.boolean().optional(),
   dryRun: z.boolean().optional(),
   timeout: z.number().int().optional(),
-  afterUpload: z.array(z.string().trim().min(1)).optional()
+  postUploadCommands: z
+    .array(z.string().refine((command) => command.trim().length > 0))
+    .optional()
 });
 
 const jobSchema = transferSchema.extend({

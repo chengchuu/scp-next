@@ -8,6 +8,9 @@ import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 import { isCliEntrypoint, runCli } from "../../src/cli/index.js";
+import { createDownloadCommand } from "../../src/cli/commands/download.js";
+import { createRunCommand } from "../../src/cli/commands/run.js";
+import { createUploadCommand } from "../../src/cli/commands/upload.js";
 import { RemoteCommandError } from "../../src/errors/index.js";
 import type {
   DownloadOptions,
@@ -234,9 +237,9 @@ describe("CLI", () => {
         "deploy",
         "--password",
         "secret",
-        "--after-upload",
+        "--post-upload-command",
         "npm install --omit=dev",
-        "--after-upload",
+        "--post-upload-command",
         "pm2 reload example"
       ],
       output: { stdout, stderr },
@@ -247,8 +250,87 @@ describe("CLI", () => {
     expect(exitCode).toBe(0);
     expect(handlers.upload).toHaveBeenCalledWith(
       expect.objectContaining({
-        afterUpload: ["npm install --omit=dev", "pm2 reload example"]
+        postUploadCommands: ["npm install --omit=dev", "pm2 reload example"]
       })
+    );
+  });
+
+  it("maps post-upload commands for configured upload jobs", async () => {
+    const directory = path.join(
+      os.tmpdir(),
+      "scp-next-tests",
+      `cli-run-post-upload-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    );
+    const configPath = path.join(directory, "scp-next.config.json");
+    await mkdir(directory, { recursive: true });
+    await writeFile(
+      configPath,
+      JSON.stringify({
+        jobs: {
+          deploy: {
+            operation: "upload",
+            source: "./dist",
+            destination: "/var/www/example"
+          }
+        }
+      })
+    );
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const handlers = mockHandlers();
+
+    const exitCode = await runCli({
+      argv: [
+        "node",
+        "scp-next",
+        "run",
+        "deploy",
+        "--config",
+        configPath,
+        "--host",
+        "example.com",
+        "--username",
+        "deploy",
+        "--password",
+        "secret",
+        "--post-upload-command",
+        "pm2 reload example"
+      ],
+      output: { stdout, stderr },
+      handlers,
+      cwd: directory
+    });
+
+    expect(exitCode).toBe(0);
+    expect(handlers.upload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postUploadCommands: ["pm2 reload example"]
+      })
+    );
+  });
+
+  it("does not expose the unreleased after-upload alias", () => {
+    const stdout = new MemoryStream();
+    const stderr = new MemoryStream();
+    const output = { stdout, stderr };
+    const handlers = mockHandlers();
+    const uploadOptions = createUploadCommand(handlers, output, "/workspace").options.map(
+      (option) => option.long
+    );
+    const runOptions = createRunCommand(handlers, output, "/workspace").options.map(
+      (option) => option.long
+    );
+    const downloadOptions = createDownloadCommand(
+      handlers,
+      output,
+      "/workspace"
+    ).options.map((option) => option.long);
+
+    expect(uploadOptions).toContain("--post-upload-command");
+    expect(runOptions).toContain("--post-upload-command");
+    expect(downloadOptions).not.toContain("--post-upload-command");
+    expect([...uploadOptions, ...runOptions, ...downloadOptions]).not.toContain(
+      "--after-upload"
     );
   });
 
@@ -270,7 +352,7 @@ describe("CLI", () => {
         "--password",
         "top-secret",
         "--dry-run",
-        "--after-upload",
+        "--post-upload-command",
         "deploy --token top-secret"
       ],
       output: { stdout, stderr },
@@ -297,7 +379,7 @@ describe("CLI", () => {
         "./dist",
         "/var/www/example",
         "--dry-run",
-        "--after-upload",
+        "--post-upload-command",
         "   "
       ],
       output: { stdout, stderr },
@@ -307,7 +389,7 @@ describe("CLI", () => {
 
     expect(exitCode).toBe(1);
     expect(stderr.output).toContain(
-      "afterUpload must be an array of non-empty command strings."
+      "Each --post-upload-command value must be a non-empty command."
     );
     expect(handlers.upload).not.toHaveBeenCalled();
   });
@@ -337,7 +419,7 @@ describe("CLI", () => {
         "deploy",
         "--password",
         "secret",
-        "--after-upload",
+        "--post-upload-command",
         "false"
       ],
       output: { stdout, stderr },

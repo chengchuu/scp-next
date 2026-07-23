@@ -15,7 +15,8 @@
 
 - `ssh2-sftp-client`: maintained SFTP client built on `ssh2`, avoiding manual protocol
   implementation and remote shell commands for normal transfers.
-- `ssh2`: direct SSH command channels for the explicit `exec()` and `afterUpload` capabilities.
+- `ssh2`: direct SSH command channels for the explicit `exec()` and `postUploadCommands`
+  capabilities.
 - `commander`: small CLI parser with solid help/version support.
 - `zod`: validates configuration file shape without exposing schema objects in the public API.
 - `tsup`: emits ESM, CommonJS, declarations, and source maps with minimal packaging overhead.
@@ -53,9 +54,9 @@ selected dependency and SFTP servers include:
 
 `src/client/command-executor.ts` is separate from `src/client/transport.ts`; the SFTP
 transport never executes shell commands. The command connection is opened lazily only when
-`exec()` is called or a successful upload has a non-empty `afterUpload` list. It is reused for
-the command sequence and closed with the client. The current implementation uses a separate SSH
-connection from the SFTP client because `ssh2-sftp-client` does not expose its underlying
+`exec()` is called or a successful upload has a non-empty `postUploadCommands` list. It is reused
+for the command sequence and closed with the client. The current implementation uses a separate
+SSH connection from the SFTP client because `ssh2-sftp-client` does not expose its underlying
 connection as a supported public API.
 
 Post-upload commands run sequentially. A failed upload prevents the command executor from

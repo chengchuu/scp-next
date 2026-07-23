@@ -14,6 +14,11 @@ import type {
 import { resolveLocalPath } from "../paths/local-path.js";
 import { restoreMsysConvertedRemotePath } from "../paths/remote-path.js";
 import { ValidationError } from "../errors/index.js";
+import {
+  clearPostUploadCommands,
+  getPostUploadCommands,
+  readPostUploadCommands
+} from "./post-upload-commands.js";
 
 export interface CliTransferOptions extends ScpServerOptions, Omit<TransferOptions, "onProgress"> {
   profile?: string | undefined;
@@ -83,7 +88,7 @@ function jobTransfer(job: TransferJob | undefined): Omit<TransferOptions, "onPro
     createDirectories: job.createDirectories,
     dryRun: job.dryRun,
     timeout: job.timeout,
-    afterUpload: job.afterUpload
+    postUploadCommands: readPostUploadCommands(job)
   });
 }
 
@@ -170,18 +175,7 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
   }
 
   const pathResolved = resolveConfigRelatedPaths(resolved, operation, configDirectory);
-
-  if (
-    pathResolved.afterUpload !== undefined &&
-    (!Array.isArray(pathResolved.afterUpload) ||
-      pathResolved.afterUpload.some(
-        (command) => typeof command !== "string" || !command.trim()
-      ))
-  ) {
-    throw new ValidationError(
-      "afterUpload must be an array of non-empty command strings."
-    );
-  }
+  getPostUploadCommands(pathResolved);
 
   if (input.source && operation === "upload") {
     pathResolved.source = resolveLocalPath(input.source, cwd);
@@ -193,10 +187,13 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
 
   if (operation === "download") {
     pathResolved.source = restoreMsysConvertedRemotePath(pathResolved.source);
-    if (job?.afterUpload?.length || cli.afterUpload?.length) {
+    if (
+      getPostUploadCommands(job)?.length ||
+      getPostUploadCommands(cli)?.length
+    ) {
       throw new ValidationError("Post-upload commands are not supported for downloads.");
     }
-    pathResolved.afterUpload = undefined;
+    clearPostUploadCommands(pathResolved);
   }
 
   if (input.destination && operation === "download") {

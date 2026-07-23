@@ -296,7 +296,7 @@ describe("ScpNextClientImpl with mock transport", () => {
   });
 
   it("runs post-upload commands sequentially in configured order and captures output", async () => {
-    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-after-upload");
+    const directory = path.join(os.tmpdir(), "scp-next-tests", "client-post-upload");
     await mkdir(directory, { recursive: true });
     const localFile = path.join(directory, "app.txt");
     await writeFile(localFile, "test");
@@ -312,7 +312,7 @@ describe("ScpNextClientImpl with mock transport", () => {
     );
 
     const results = await client.upload(localFile, "/var/www/app.txt", {
-      afterUpload: ["npm install --omit=dev", "pm2 reload example"]
+      postUploadCommands: ["npm install --omit=dev", "pm2 reload example"]
     });
     await client.close();
 
@@ -354,7 +354,7 @@ describe("ScpNextClientImpl with mock transport", () => {
 
     await expect(
       client.upload(localFile, "/var/www/app.txt", {
-        afterUpload: ["pm2 reload example"]
+        postUploadCommands: ["pm2 reload example"]
       })
     ).rejects.toThrow("upload failed");
     expect(commandExecutor.connect).not.toHaveBeenCalled();
@@ -392,7 +392,7 @@ describe("ScpNextClientImpl with mock transport", () => {
 
     try {
       await client.upload(localFile, "/var/www/app.txt", {
-        afterUpload: ["first", "second", "third"]
+        postUploadCommands: ["first", "second", "third"]
       });
       throw new Error("Expected command failure.");
     } catch (error) {
@@ -430,7 +430,7 @@ describe("ScpNextClientImpl with mock transport", () => {
 
     await client.upload(localFile, "/var/www/app.txt", {
       dryRun: true,
-      afterUpload: ["should-not-run"]
+      postUploadCommands: ["should-not-run"]
     });
     await client.download("/var/log/example.log", directory, {
       overwrite: true
@@ -475,10 +475,18 @@ describe("ScpNextClientImpl with mock transport", () => {
     await expect(
       client.upload(localFile, "/var/www/app.txt", {
         dryRun: true,
-        afterUpload: "deploy" as unknown as string[]
+        postUploadCommands: "deploy" as unknown as string[]
       })
     ).rejects.toThrow(
-      "afterUpload must be an array of non-empty command strings."
+      "postUploadCommands must be an array of non-empty command strings."
+    );
+    await expect(
+      client.download("/var/log/example.log", directory, {
+        dryRun: true,
+        postUploadCommands: {} as string[]
+      })
+    ).rejects.toThrow(
+      "postUploadCommands must be an array of non-empty command strings."
     );
     await expect(client.exec(42 as unknown as string)).rejects.toThrow(
       "Remote command must not be empty."
@@ -532,7 +540,7 @@ describe("ScpNextClientImpl with mock transport", () => {
       { transport, commandExecutor }
     );
     await client.upload(localFile, "/var/www/app.txt", {
-      afterUpload: ["deploy"]
+      postUploadCommands: ["deploy"]
     });
 
     await expect(client.close()).rejects.toThrow("SFTP close failed");

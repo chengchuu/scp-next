@@ -153,13 +153,13 @@ scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
   --recursive \
-  --after-upload "cd /var/www/example && npm install --omit=dev" \
-  --after-upload "pm2 reload example"
+  --post-upload-command "cd /var/www/example && npm install --omit=dev" \
+  --post-upload-command "pm2 reload example"
 ```
 
-`--after-upload` is repeatable and upload-only. Commands run sequentially on the remote
-server with the SSH user's permissions. The first non-zero exit code stops the sequence and
-makes the CLI exit non-zero. A missing exit status is also treated as failure.
+`--post-upload-command` is repeatable and upload-only. Commands run sequentially on the
+remote server with the SSH user's permissions. The first non-zero exit code stops the sequence
+and makes the CLI exit non-zero. A missing exit status is also treated as failure.
 
 Use an encrypted private key:
 
@@ -218,7 +218,7 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--create-directories`                | Create missing destination directories. Enabled by default.            |
 | `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
-| `--after-upload <command>`            | Run a remote command after a successful upload. Repeatable.             |
+| `--post-upload-command <command>`     | Run a remote command after a successful upload. Repeatable.             |
 | `--timeout <milliseconds>`            | SSH connection ready timeout in milliseconds.                          |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |
 | `--quiet`                             | Disable progress and non-error output.                                 |
@@ -242,7 +242,7 @@ await upload({
   remotePath: "/var/www/example",
   recursive: true,
   overwrite: true,
-  afterUpload: [
+  postUploadCommands: [
     "cd /var/www/example && npm install --omit=dev",
     "pm2 reload example"
   ]
@@ -335,7 +335,7 @@ await upload({
 | `createDirectories` | transfer        | Create missing destination directories. Defaults to `true`.  |
 | `dryRun`            | transfer        | Validate and plan without modifying local or remote files.   |
 | `timeout`           | server/transfer | SSH connection ready timeout in milliseconds.                |
-| `afterUpload`       | upload          | Remote command strings run sequentially after success.       |
+| `postUploadCommands` | upload         | Remote command strings run sequentially after success.       |
 | `onProgress`        | transfer        | Progress callback for file and directory transfers.          |
 
 `client.exec(command, options)` returns `ExecResult` with `stdout`, `stderr`, `exitCode`,
@@ -449,7 +449,7 @@ Jobs use `source` and `destination`; the `operation` determines which path is lo
       "destination": "/var/www/example",
       "recursive": true,
       "overwrite": true,
-      "afterUpload": [
+      "postUploadCommands": [
         "cd /var/www/example && npm install --omit=dev",
         "pm2 reload example"
       ]
@@ -631,11 +631,11 @@ Upload and download APIs use explicit `localPath` and `remotePath` names.
 The optional generic `copy()` API accepts typed local/remote endpoint objects.
 `ScpNextClient.exec(command, options)` executes one command directly through SSH.
 
-Post-upload execution is disabled unless `afterUpload` is present. Commands are sent directly
-to the remote SSH server, never through a local shell, and never run for downloads or dry runs.
-Do not put passwords, tokens, or other secrets directly in command strings; command output may
-also contain application data. `scp-next` redacts known credentials and common secret assignment
-forms from CLI logs and errors.
+Post-upload execution is disabled unless `postUploadCommands` is present. Commands are sent
+directly to the remote SSH server, never through a local shell, and never run for downloads or
+dry runs. Do not put passwords, tokens, or other secrets directly in command strings; command
+output may also contain application data. `scp-next` redacts known credentials and common secret
+assignment forms from CLI logs and errors.
 
 ## User Guides
 

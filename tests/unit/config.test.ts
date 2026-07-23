@@ -16,13 +16,24 @@ describe("configuration loading and precedence", () => {
       configPath,
       JSON.stringify({
         server: { host: "example.com", username: "deploy" },
-        transfer: { recursive: true }
+        transfer: { recursive: true },
+        jobs: {
+          deploy: {
+            operation: "upload",
+            source: "./dist",
+            destination: "/var/www/example",
+            postUploadCommands: ["  pm2 reload example  "]
+          }
+        }
       })
     );
 
     const loaded = await loadConfig(configPath, directory);
     expect(loaded.config.server?.host).toBe("example.com");
     expect(loaded.config.transfer?.recursive).toBe(true);
+    expect(loaded.config.jobs?.deploy?.postUploadCommands).toEqual([
+      "  pm2 reload example  "
+    ]);
   });
 
   it("selects profiles and applies CLI over env over config", () => {
@@ -106,7 +117,7 @@ describe("configuration loading and precedence", () => {
             source: "./dist",
             destination: "/var/www/example",
             recursive: true,
-            afterUpload: ["npm install --omit=dev", "pm2 reload example"]
+            postUploadCommands: ["npm install --omit=dev", "pm2 reload example"]
           }
         }
       }
@@ -117,10 +128,31 @@ describe("configuration loading and precedence", () => {
     expect(resolved.destination).toBe("/var/www/example");
     expect(resolved.host).toBe("production.example.com");
     expect(resolved.recursive).toBe(true);
-    expect(resolved.afterUpload).toEqual([
+    expect(resolved.postUploadCommands).toEqual([
       "npm install --omit=dev",
       "pm2 reload example"
     ]);
+  });
+
+  it("validates post-upload commands after applying configuration precedence", () => {
+    const resolved = resolveTransferConfig({
+      jobName: "deploy",
+      config: {
+        jobs: {
+          deploy: {
+            operation: "upload",
+            source: "./dist",
+            destination: "/var/www/example",
+            postUploadCommands: [""]
+          }
+        }
+      },
+      cli: {
+        postUploadCommands: ["pm2 reload example"]
+      }
+    });
+
+    expect(resolved.postUploadCommands).toEqual(["pm2 reload example"]);
   });
 
   it("ignores upload-only transfer defaults for downloads", () => {
@@ -130,12 +162,12 @@ describe("configuration loading and precedence", () => {
       destination: "./example.log",
       config: {
         transfer: {
-          afterUpload: ["should-not-run"]
+          postUploadCommands: ["should-not-run"]
         }
       }
     });
 
-    expect(resolved.afterUpload).toBeUndefined();
+    expect(resolved.postUploadCommands).toBeUndefined();
   });
 
   it("rejects post-upload commands configured directly on download jobs", () => {
@@ -148,7 +180,7 @@ describe("configuration loading and precedence", () => {
               operation: "download",
               source: "/var/log/example.log",
               destination: "./example.log",
-              afterUpload: ["should-not-run"]
+              postUploadCommands: ["should-not-run"]
             }
           }
         }

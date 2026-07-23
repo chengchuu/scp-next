@@ -15,7 +15,11 @@
       "destination": "/var/www/example",
       "recursive": true,
       "overwrite": true,
-      "createDirectories": true
+      "createDirectories": true,
+      "postUploadCommands": [
+        "cd /var/www/example && npm install --omit=dev",
+        "pm2 reload example"
+      ]
     }
   }
 }

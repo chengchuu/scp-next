@@ -7,6 +7,7 @@ import {
   resolveTransferConfig,
   type CliTransferOptions
 } from "../../config/resolve-config.js";
+import { ValidationError } from "../../errors/index.js";
 import type { Output } from "../output.js";
 import { createProgressReporter, verbosePlan, writeDryRun } from "../output.js";
 import { writeCommandResults } from "../output.js";
@@ -35,7 +36,7 @@ export interface RawCommandOptions {
   timeout?: number;
   verbose?: boolean;
   quiet?: boolean;
-  afterUpload?: string[];
+  postUploadCommand?: string[];
 }
 
 export interface TransferHandlers {
@@ -45,7 +46,7 @@ export interface TransferHandlers {
 
 export function addTransferOptions(
   command: Command,
-  options: { afterUpload?: boolean } = {}
+  options: { postUploadCommand?: boolean } = {}
 ) {
   command.option("--host <host>", "SSH server host");
   command.addOption(new Option("--port <port>", "SSH server port").argParser(parseInteger));
@@ -68,9 +69,9 @@ export function addTransferOptions(
   );
   command.option("--verbose", "Print verbose diagnostic output");
   command.option("--quiet", "Disable progress and non-error output");
-  if (options.afterUpload) {
+  if (options.postUploadCommand) {
     command.option(
-      "--after-upload <command>",
+      "--post-upload-command <command>",
       "Run a remote command after a successful upload (repeatable)",
       collectValues
     );
@@ -105,7 +106,7 @@ function toCliOptions(options: RawCommandOptions): CliTransferOptions {
     createDirectories: options.createDirectories,
     dryRun: options.dryRun,
     timeout: options.timeout,
-    afterUpload: options.afterUpload
+    postUploadCommands: options.postUploadCommand
   };
 }
 
@@ -117,6 +118,11 @@ export async function resolveForCli(input: {
   options: RawCommandOptions;
   cwd: string;
 }): Promise<ResolvedTransferConfig> {
+  if (input.options.postUploadCommand?.some((command) => !command.trim())) {
+    throw new ValidationError(
+      "Each --post-upload-command value must be a non-empty command."
+    );
+  }
   const loaded = await loadConfig(input.options.config, input.cwd);
   return resolveTransferConfig({
     operation: input.operation,

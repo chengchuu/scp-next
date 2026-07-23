@@ -24,6 +24,7 @@ import {
   validateServerOptions,
   validateUploadOptions
 } from "../config/validation.js";
+import { getPostUploadCommands } from "../config/post-upload-commands.js";
 
 export interface ScpNextClientDependencies {
   transport?: SftpTransport;
@@ -123,7 +124,7 @@ export class ScpNextClientImpl implements ScpNextClient {
     await this.ensureConnected();
     await this.uploadWithTransport(uploadOptions);
     const results: ExecResult[] = [];
-    for (const command of options.afterUpload ?? []) {
+    for (const command of getPostUploadCommands(options) ?? []) {
       results.push(await this.exec(command));
     }
     return results;

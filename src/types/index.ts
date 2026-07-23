@@ -19,7 +19,7 @@ export interface TransferOptions {
   dryRun?: boolean | undefined;
   timeout?: number | undefined;
   /** Remote command strings run sequentially only after a successful upload. */
-  afterUpload?: string[] | undefined;
+  postUploadCommands?: string[] | undefined;
   onProgress?: ((progress: TransferProgress) => void) | undefined;
 }
 
@@ -100,7 +100,7 @@ export interface TransferJob {
   createDirectories?: boolean | undefined;
   dryRun?: boolean | undefined;
   timeout?: number | undefined;
-  afterUpload?: string[] | undefined;
+  postUploadCommands?: string[] | undefined;
 }
 
 export interface ScpNextConfig {

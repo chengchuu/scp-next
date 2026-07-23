@@ -2,8 +2,10 @@
 
 ## Unreleased
 
-- Added opt-in, repeatable `--after-upload` commands for CLI uploads and configured upload jobs.
-- Added library `afterUpload`, `client.exec()`, `ExecResult`, and typed `RemoteCommandError` APIs.
+- Added opt-in, repeatable `--post-upload-command` commands for CLI uploads and configured
+  upload jobs.
+- Added library `postUploadCommands`, `client.exec()`, `ExecResult`, and typed
+  `RemoteCommandError` APIs.
 - Kept remote command execution separate from SFTP, sequential, disabled for downloads and dry
   runs, and fail-fast on non-zero exit codes.
 - Added bounded command output capture, CLI failure propagation, secret redaction, and mock-based

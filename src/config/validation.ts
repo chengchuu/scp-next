@@ -4,6 +4,7 @@ import { ValidationError } from "../errors/index.js";
 import { assertDownloadDestination, assertLocalPathExists, resolveLocalPath } from "../paths/local-path.js";
 import { assertRemotePath } from "../paths/remote-path.js";
 import type { DownloadOptions, ScpServerOptions, UploadOptions } from "../types/index.js";
+import { getPostUploadCommands } from "./post-upload-commands.js";
 
 function validatePort(port: number | undefined): void {
   if (port === undefined) {
@@ -24,20 +25,6 @@ function validateTimeout(timeout: number | undefined): void {
     throw new ValidationError("Timeout must be a positive number.", {
       context: { timeout }
     });
-  }
-}
-
-function validateAfterUpload(commands: unknown): void {
-  if (commands === undefined) {
-    return;
-  }
-  if (
-    !Array.isArray(commands) ||
-    commands.some((command) => typeof command !== "string" || !command.trim())
-  ) {
-    throw new ValidationError(
-      "afterUpload must be an array of non-empty command strings."
-    );
   }
 }
 
@@ -86,7 +73,7 @@ export async function validateUploadOptions(options: UploadOptions): Promise<voi
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
-  validateAfterUpload(options.afterUpload);
+  getPostUploadCommands(options);
   await assertLocalPathExists(options.localPath);
 
   if (!options.dryRun) {
@@ -103,7 +90,7 @@ export async function validateDownloadOptions(options: DownloadOptions): Promise
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
-  if (options.afterUpload?.length) {
+  if (getPostUploadCommands(options)?.length) {
     throw new ValidationError("Post-upload commands are not supported for downloads.");
   }
   await assertDownloadDestination(options.localPath, options.createDirectories ?? true);
