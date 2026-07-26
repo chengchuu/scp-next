@@ -78,6 +78,30 @@ describe("configuration loading and precedence", () => {
     expect(resolved.createDirectories).toBe(false);
   });
 
+  it("preserves false overrides and ignores undefined values between layers", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "/var/log/example.log",
+      destination: "./logs/example.log",
+      config: {
+        transfer: {
+          recursive: true,
+          overwrite: true,
+          createDirectories: true
+        }
+      },
+      cli: {
+        recursive: false,
+        overwrite: undefined,
+        createDirectories: false
+      }
+    });
+
+    expect(resolved.recursive).toBe(false);
+    expect(resolved.overwrite).toBe(true);
+    expect(resolved.createDirectories).toBe(false);
+  });
+
   it("repairs upload remote destinations rewritten by Git Bash on Windows", () => {
     const resolved = resolveTransferConfig({
       operation: "upload",

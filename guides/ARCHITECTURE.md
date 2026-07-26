@@ -18,6 +18,7 @@
 - `ssh2`: direct SSH command channels for the explicit `exec()` and `postUploadCommands`
   capabilities.
 - `commander`: small CLI parser with solid help/version support.
+- `mazey`: shared utilities for defined-value assignment and byte-size formatting.
 - `zod`: validates configuration file shape without exposing schema objects in the public API.
 - `tsup`: emits ESM, CommonJS, declarations, and source maps with minimal packaging overhead.
 - `vitest`: fast TypeScript-friendly unit and integration tests.

@@ -2,59 +2,17 @@
 
 ## Summary
 
-- **Strong candidates:** 4
-- **Possible candidates:** 4
-- **Main overlap:** defined-value merging is applied repeatedly; integer parsing, positive-number
-  validation, test streams, and path resolution have smaller duplicated variants.
+- **Strong candidates:** 3
+- **Possible candidates:** 3
+- **Main overlap:** integer parsing, positive-number validation, test streams, and path
+  resolution have smaller duplicated variants.
 - **Intentionally excluded:** SFTP transfer orchestration, CLI operand policy, configuration
   precedence, typed `scp-next` errors, and local-versus-remote path policy.
 
 The ranking favors low coupling and clear behavior. Security-sensitive candidates remain
 conditional on stronger specifications and tests.
 
-## 1. `assignDefined`
-
-**Priority:** Strong candidate  
-**Current location:** `src/config/resolve-config.ts`
-
-### Purpose
-
-Shallowly assigns own enumerable string-keyed properties while ignoring only `undefined`.
-Unlike truthiness-based merging, it preserves `null`, empty strings, `0`, and `false`.
-
-### Why it is reusable
-
-Layered configuration, request-option defaults, and adapter settings commonly need later
-sources to override earlier ones without allowing omitted values to erase valid settings.
-
-### Duplication or overlap
-
-The helper is not duplicated, but it replaces repeated inline filtering at every configuration
-precedence layer. It overlaps native object spread in `src/client/client.ts`, where ordinary
-spread is intentionally appropriate because `undefined` filtering is not required.
-
-### Proposed API
-
-```ts
-export function assignDefined<T extends object>(
-  target: T,
-  ...sources: ReadonlyArray<Partial<T> | undefined>
-): T;
-```
-
-### Generalization required
-
-- Accept multiple sources so precedence can be expressed in one call.
-- Document that the target is mutated and that only own enumerable string keys are copied.
-- Add direct tests for `undefined`, `null`, `""`, `0`, `false`, arrays, and input mutation.
-
-### Risks and limitations
-
-- A mutating API can surprise callers; a separate immutable variant may be preferable.
-- Symbol and non-enumerable properties are outside the current behavior.
-- It must remain a shallow operation and must not acquire implicit deep-merge semantics.
-
-## 2. `restoreMsysConvertedPosixPath`
+## 1. `restoreMsysConvertedPosixPath`
 
 **Priority:** Strong candidate  
 **Current location:** `src/paths/remote-path.ts` as `restoreMsysConvertedRemotePath`
@@ -100,7 +58,7 @@ export function restoreMsysConvertedPosixPath(
 - Git installations in uncommon directories require caller configuration.
 - This helper should restore arguments only; it must not perform general path normalization.
 
-## 3. `isDirectlyExecuted`
+## 2. `isDirectlyExecuted`
 
 **Priority:** Strong candidate  
 **Current location:** `src/cli/index.ts` as `isCliEntrypoint`
@@ -139,7 +97,7 @@ export function isDirectlyExecuted(moduleUrl: string, argv?: readonly string[]):
 - Filesystem access occurs during module initialization when callers use it at top level.
 - Non-file module URLs must return `false`, not throw.
 
-## 4. `redactSensitiveValues`
+## 3. `redactSensitiveValues`
 
 **Priority:** Strong candidate  
 **Current location:** `src/security/redact.ts`
@@ -197,7 +155,7 @@ export function redactKnownSensitiveValues(
 - The current recursive implementation does not handle cyclic objects.
 - Security defaults must remain conservative and versioned carefully.
 
-## 5. `collectDualStreamOutput`
+## 4. `collectDualStreamOutput`
 
 **Priority:** Possible candidate  
 **Current location:** `src/client/command-executor.ts` as `collectCommandResult`
@@ -257,7 +215,7 @@ export function collectDualStreamOutput(
 - String conversion and `Buffer.byteLength()` must not undercount split multibyte input.
 - Cleanup must remain idempotent under timeout, stream error, and close races.
 
-## 6. `normalizeSshSha256Fingerprint`
+## 5. `normalizeSshSha256Fingerprint`
 
 **Priority:** Possible candidate  
 **Current location:** `src/security/host-verification.ts`
@@ -311,52 +269,7 @@ export function createSshFingerprintMatcher(
 - The current known-hosts parser supports exact plain hosts only, not hashed hosts or all OpenSSH
   marker behavior.
 
-## 7. `formatByteSize`
-
-**Priority:** Possible candidate  
-**Current location:** `src/cli/output.ts` as `formatBytes`
-
-### Purpose
-
-Formats byte counts using 1024-based units and one fractional digit while preserving zero as
-`0 B`.
-
-### Why it is reusable
-
-Transfer CLIs, backup tools, package inspectors, storage dashboards, and progress reporters need
-stable byte formatting with explicitly chosen binary scaling and precision.
-
-### Duplication or overlap
-
-There is no local duplicate. Mazey's public `getFileSize` overlaps but is not equivalent: it
-rounds upward to whole units, returns an empty string for zero or invalid values, and uses
-different large-unit labels.
-
-### Proposed API
-
-```ts
-export interface FormatByteSizeOptions {
-  base?: 1000 | 1024;
-  fractionDigits?: number;
-  invalidValue?: string;
-}
-
-export function formatByteSize(bytes: number, options?: FormatByteSizeOptions): string;
-```
-
-### Generalization required
-
-- Define negative, non-finite, and fractional-byte behavior.
-- Decide whether 1024-based labels remain `KB`/`MB` or use `KiB`/`MiB`.
-- Parameterize precision without changing the current one-decimal CLI output.
-
-### Risks and limitations
-
-- Unit-label conventions are product policy, not merely arithmetic.
-- Rounding near unit boundaries must be specified and regression-tested.
-- This may be better added as an option-compatible extension to Mazey than as a new package.
-
-## 8. `validateLocalMarkdownLinks`
+## 6. `validateLocalMarkdownLinks`
 
 **Priority:** Possible candidate  
 **Current location:** `scripts/validate-doc-links.js`
@@ -411,16 +324,17 @@ export function validateLocalMarkdownLinks(
 
 ## Existing Dependency Matches
 
-The installed version is `mazey@5.4.2`. None of the eight ranked candidates has an equivalent
-public Mazey API. One weaker one-off transformation should use Mazey rather than become another
-extracted utility:
+The installed version is `mazey@5.5.0`. Two former candidates now have exact public Mazey APIs
+and are reused by the project:
 
-| Current logic                  | Location                    | Existing API             | Recommendation                                                                                                                |
-| ------------------------------ | --------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| IIFE global-name normalization | `scripts/rollup.config.mjs` | `toJavaScriptGlobalName` | Use the public Mazey API if this legacy build configuration remains; verify the intentional behavior change for scoped names. |
+| Current logic                   | Location                       | Existing API             | Recommendation                                                                                                                |
+| ------------------------------- | ------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Defined-only shallow assignment | `src/config/resolve-config.ts` | `assignDefined`          | Reuse the public Mazey API; it preserves precedence, mutation, and falsy-value behavior.                                      |
+| Binary byte-size formatting     | `src/cli/output.ts`            | `formatByteSize`         | Reuse the public Mazey API with its default 1024 base and one fractional digit.                                               |
+| IIFE global-name normalization  | `scripts/rollup.config.mjs`    | `toJavaScriptGlobalName` | Use the public Mazey API if this legacy build configuration remains; verify the intentional behavior change for scoped names. |
 
-`getFileSize`, `sha256Hex`, `parseJsonSafe`, `throttle`, `waitTime`, `isNumber`, and
-`isUdfOrNul` were reviewed but do not fully match the ranked helpers' behavior.
+`sha256Hex`, `parseJsonSafe`, `throttle`, `waitTime`, `isNumber`, and `isUdfOrNul` were
+reviewed but do not fully match the remaining ranked helpers' behavior.
 
 ## Reviewed but Excluded
 
@@ -442,11 +356,9 @@ extracted utility:
 
 ## Recommended Extraction Order
 
-1. `assignDefined`
-2. `restoreMsysConvertedPosixPath`
-3. `isDirectlyExecuted`
-4. `redactSensitiveValues`
-5. `collectDualStreamOutput`
-6. `normalizeSshSha256Fingerprint`
-7. `formatByteSize`
-8. `validateLocalMarkdownLinks`
+1. `restoreMsysConvertedPosixPath`
+2. `isDirectlyExecuted`
+3. `redactSensitiveValues`
+4. `collectDualStreamOutput`
+5. `normalizeSshSha256Fingerprint`
+6. `validateLocalMarkdownLinks`

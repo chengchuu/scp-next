@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import { assignDefined } from "mazey";
+
 import { selectJob } from "./jobs.js";
 import { selectProfile } from "./profiles.js";
 import type { EnvironmentConfig } from "./environment.js";
@@ -44,20 +46,6 @@ const DEFAULT_TRANSFER: Omit<ResolvedTransferConfig, "operation" | "source" | "d
   dryRun: false
 };
 
-function assignDefined<T extends object>(target: T, source: object | undefined): T {
-  if (!source) {
-    return target;
-  }
-
-  for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
-    if (value !== undefined) {
-      Object.assign(target, { [key]: value });
-    }
-  }
-
-  return target;
-}
-
 function rootServer(config: ScpNextConfig): ScpServerOptions {
   const result: ScpServerOptions = {};
   assignDefined(result, config.server);
@@ -88,7 +76,7 @@ function jobTransfer(job: TransferJob | undefined): Omit<TransferOptions, "onPro
     createDirectories: job.createDirectories,
     dryRun: job.dryRun,
     timeout: job.timeout,
-    postUploadCommands: readPostUploadCommands(job)
+    postUploadCommands: readPostUploadCommands(job) as TransferOptions["postUploadCommands"]
   });
 }
 
@@ -164,10 +152,8 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
     passphrase: env.passphrase,
     timeout: env.timeout
   });
-  assignDefined(resolved, {
-    source: input.source,
-    destination: input.destination
-  });
+  if (input.source !== undefined) resolved.source = input.source;
+  if (input.destination !== undefined) resolved.destination = input.destination;
   assignDefined(resolved, cli);
 
   if (selectedProfileName) {

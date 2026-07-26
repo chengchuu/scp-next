@@ -1,3 +1,5 @@
+import { formatByteSize } from "mazey";
+
 import type {
   ExecResult,
   ResolvedTransferConfig,
@@ -94,8 +96,8 @@ export function createProgressReporter(
       return;
     }
 
-    const total = progress.totalBytes ? formatBytes(progress.totalBytes) : "?";
-    const transferred = formatBytes(progress.transferredBytes);
+    const total = progress.totalBytes ? formatByteSize(progress.totalBytes) : "?";
+    const transferred = formatByteSize(progress.transferredBytes);
     const percentage = progress.percentage === undefined ? "" : ` (${progress.percentage}%)`;
     const currentFile = progress.currentFile ? `: ${progress.currentFile}` : "";
     const line = `${progress.operation === "upload" ? "Uploading" : "Downloading"}${currentFile} ${transferred} / ${total}${percentage}`;
@@ -136,18 +138,4 @@ export function verbosePlan(output: Output, config: ResolvedTransferConfig): voi
       2
     )}\n`
   );
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  return `${value.toFixed(1)} ${units[unitIndex]}`;
 }

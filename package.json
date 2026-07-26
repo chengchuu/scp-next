@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "commander": "^12.1.0",
-    "mazey": "^5.4.2",
+    "mazey": "^5.5.0",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^11.0.0",
     "zod": "^3.23.8"
