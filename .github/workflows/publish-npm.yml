@@ -9,15 +9,14 @@ permissions:
   packages: write
 
 on:
-  # Test on pull requests to main or release branches
+  # Test
   pull_request:
     branches:
       - main
       - 'release/v*'
-  # Publish on pushes to release branches
+  # Publish
   push:
     branches:
-      - main
       - 'release/v*'
   workflow_dispatch:
 
