@@ -12,8 +12,8 @@ importers:
         specifier: ^12.1.0
         version: 12.1.0
       mazey:
-        specifier: ^5.5.0
-        version: 5.5.0
+        specifier: ^5.6.1
+        version: 5.6.1
       ssh2:
         specifier: ^1.17.0
         version: 1.17.0
@@ -1275,8 +1275,8 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
 
-  mazey@5.5.0:
-    resolution: {integrity: sha512-TgN6trcw6dn6OqSaEdd5X/ya2NEe82JOKMbOSqL0iUh+REhVX+KgZozMcFeVmxNkdz6EaFajXfHKqloo+S47xA==}
+  mazey@5.6.1:
+    resolution: {integrity: sha512-SUdUhwznqNdjiHrX6ADTr4MlTzhqFwYcCtTjtefnkM6NiD67U+8F4nDLlnxTF1El9m0toOJzziQApaxKrpuZMw==}
 
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
@@ -2729,7 +2729,7 @@ snapshots:
     dependencies:
       semver: 7.8.5
 
-  mazey@5.5.0: {}
+  mazey@5.6.1: {}
 
   minimatch@10.2.5:
     dependencies:
