@@ -43,8 +43,14 @@ Download   Remote  Local
 - `src/types`: public TypeScript types.
 - `tests`: Vitest unit and mock-transport integration tests.
 - `guides`: handwritten architecture notes and release notes.
-- `site`: source for the GitHub Pages documentation site.
-- `docs`: generated GitHub Pages output only; do not store handwritten source here.
+- `project.config.js`: central package-derived website identity, routes, metadata, theme, and PWA
+  configuration.
+- `site`: source for the Bootstrap website, interactive examples, shared browser behavior, and
+  service worker.
+- `scripts/rollup.config.mjs`: npm package build configuration.
+- `scripts/webpack.config.dev.js`: website and examples build configuration.
+- `.pages-api`, `dist-dev`, and `docs`: generated TypeDoc, Webpack, and final Pages outputs. Do not
+  store handwritten source in them or edit them directly.
 
 Keep CLI concerns out of the library layer. The library must not call `process.exit()`.
 
@@ -119,7 +125,7 @@ npm run lint
 npm test
 npm run build
 npm run docs:links
-npm run docs:build
+npm run docs
 npm pack --dry-run
 ```
 
@@ -159,6 +165,9 @@ Important existing test areas:
 - Error conversion
 - Mock transport transfer behavior
 - ESM and CJS exports
+- Website example generation and local/remote operand mapping
+- TypeDoc metadata transformation and GitHub Pages routes
+- SEO, PWA manifest, icon, and service-worker validation
 
 ## Documentation Expectations
 
@@ -199,6 +208,24 @@ Add or update files under `guides/release-notes/` for long-form release notes. D
 root-level `release-notes/` directory.
 
 README examples must not contain real credentials.
+
+## Website and Pages Expectations
+
+- Keep Rollup responsible for `dist/`, Webpack responsible for the homepage and `/examples/`,
+  TypeDoc responsible for `.pages-api/`, and `scripts/build-pages.js` responsible for final
+  `docs/` assembly.
+- Keep Bootstrap in `devDependencies`; never add website code or browser-only dependencies to
+  package runtime source.
+- Preserve stable routes below `/scp-next/`: `/`, `/examples/`, and `/api/`.
+- Keep canonical URLs, Open Graph metadata, JSON-LD, sitemap routes, manifest paths, worker scope,
+  favicon paths, and navigation synchronized through `project.config.js`.
+- The examples page may generate accurate CLI and public-root TypeScript calls, but must not make
+  SSH connections, inspect local files, or collect credentials in the browser.
+- Apply `system`, `light`, and `dark` preferences through Bootstrap `data-bs-theme`, persist them
+  under the project-specific key, and synchronize TypeDoc plus browser theme-color state.
+- Register the service worker only for production Pages builds, keep interception within the
+  project base path, and require explicit user action before activating a waiting update.
+- Run `npm run docs` for site changes so SEO and PWA validators inspect the final artifact.
 
 ## Style Notes
 

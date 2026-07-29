@@ -1,0 +1,379 @@
+:root,
+[data-bs-theme="light"] {
+  --scp-background: var(--project-theme-light);
+  --scp-surface: #ffffff;
+  --scp-surface-muted: #eaf1ed;
+  --scp-text: #14231b;
+  --scp-muted: #52635a;
+  --scp-border: #cddbd3;
+  --scp-primary: var(--project-theme-primary);
+  --scp-primary-hover: var(--project-theme-primary-hover);
+  --scp-primary-active: var(--project-theme-primary-active);
+  --scp-primary-soft: var(--project-theme-primary-soft);
+  --scp-code-background: #0d1c15;
+  --scp-code-text: #edf8f2;
+  --scp-focus: #c45c16;
+  --bs-body-bg: var(--scp-background);
+  --bs-body-color: var(--scp-text);
+  --bs-border-color: var(--scp-border);
+  --bs-primary-rgb: var(--project-theme-primary-rgb);
+  --bs-link-color-rgb: var(--project-theme-primary-rgb);
+  --bs-link-hover-color-rgb: var(--project-theme-primary-hover-rgb);
+}
+
+[data-bs-theme="dark"] {
+  --scp-background: var(--project-theme-dark);
+  --scp-surface: #13221a;
+  --scp-surface-muted: #192d22;
+  --scp-text: #edf7f1;
+  --scp-muted: #aec4b8;
+  --scp-border: #365346;
+  --scp-primary: var(--project-theme-primary-dark);
+  --scp-primary-hover: var(--project-theme-primary-dark-hover);
+  --scp-primary-active: var(--project-theme-primary-dark-active);
+  --scp-primary-soft: var(--project-theme-primary-dark-soft);
+  --scp-code-background: #07100b;
+  --scp-code-text: #f0faf4;
+  --scp-focus: #ffb46f;
+  --bs-body-bg: var(--scp-background);
+  --bs-body-color: var(--scp-text);
+  --bs-border-color: var(--scp-border);
+  --bs-primary-rgb: var(--project-theme-primary-dark-rgb);
+  --bs-link-color-rgb: var(--project-theme-primary-dark-rgb);
+  --bs-link-hover-color-rgb: var(--project-theme-primary-dark-hover-rgb);
+}
+
+html {
+  min-width: 20rem;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+body {
+  min-width: 20rem;
+  overflow-x: hidden;
+  color: var(--scp-text);
+  background: var(--scp-background);
+  line-height: 1.65;
+}
+
+a {
+  text-underline-offset: 0.2em;
+}
+
+:where(a, button, select, input):focus-visible {
+  outline: 3px solid var(--scp-focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 1100;
+  top: 0.5rem;
+  left: 0.5rem;
+  transform: translateY(-150%);
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--scp-border);
+  color: var(--scp-text);
+  background: var(--scp-surface);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.site-header {
+  position: sticky;
+  z-index: 1030;
+  top: 0;
+  border-bottom: 1px solid var(--scp-border);
+  background: var(--scp-background);
+}
+
+.site-navbar {
+  min-height: 4.5rem;
+}
+
+.site-navbar .navbar-brand {
+  margin-right: 0;
+  color: var(--scp-text);
+  font-weight: 750;
+}
+
+.brand-logo {
+  width: 2rem;
+  height: 2rem;
+}
+
+.site-navbar .nav-link {
+  min-height: 2.75rem;
+  color: var(--scp-muted);
+  font-weight: 600;
+}
+
+.site-navbar .nav-link:hover,
+.site-navbar .nav-link:focus-visible {
+  color: var(--scp-text);
+}
+
+.site-navbar .navbar-toggler {
+  display: none;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-color: var(--scp-border);
+}
+
+.theme-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--scp-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.hero {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--scp-border);
+  background:
+    radial-gradient(circle at 80% 20%, var(--scp-primary-soft), transparent 28rem),
+    var(--scp-surface);
+}
+
+.hero h1 {
+  max-width: 52rem;
+  margin: 0.75rem 0 1rem;
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  line-height: 1.05;
+}
+
+.hero .lead,
+.text-muted-custom,
+.section-heading p {
+  color: var(--scp-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.transfer-visual {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--scp-border);
+  border-radius: 0.75rem;
+  background: var(--scp-surface);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--scp-primary);
+  --bs-btn-border-color: var(--scp-primary);
+  --bs-btn-hover-bg: var(--scp-primary-hover);
+  --bs-btn-hover-border-color: var(--scp-primary-hover);
+  --bs-btn-active-bg: var(--scp-primary-active);
+  --bs-btn-active-border-color: var(--scp-primary-active);
+}
+
+[data-bs-theme="dark"] .btn-primary {
+  --bs-btn-color: #07150e;
+  --bs-btn-hover-color: #07150e;
+  --bs-btn-active-color: #07150e;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--scp-text);
+  --bs-btn-border-color: var(--scp-border);
+  --bs-btn-hover-color: var(--scp-text);
+  --bs-btn-hover-bg: var(--scp-primary-soft);
+  --bs-btn-hover-border-color: var(--scp-primary);
+}
+
+.section-band {
+  padding: 4.5rem 0;
+  border-bottom: 1px solid var(--scp-border);
+}
+
+.section-band--muted {
+  background: var(--scp-surface-muted);
+}
+
+.section-heading {
+  max-width: 50rem;
+  margin-bottom: 2rem;
+}
+
+.feature-card,
+.example-panel {
+  height: 100%;
+  border-color: var(--scp-border);
+  background: var(--scp-surface);
+}
+
+.feature-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+  color: #ffffff;
+  background: var(--scp-primary);
+  font-weight: 750;
+}
+
+.code-sample,
+.example-output {
+  max-width: 100%;
+  margin: 0;
+  padding: 1.25rem;
+  overflow-x: auto;
+  border: 1px solid var(--scp-border);
+  border-radius: 0.5rem;
+  color: var(--scp-code-text);
+  background: var(--scp-code-background);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.install-command {
+  display: flex;
+  width: min(100%, 35rem);
+  min-height: 3.5rem;
+  border: 1px solid var(--scp-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  color: var(--scp-code-text);
+  background: var(--scp-code-background);
+}
+
+.install-command code {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.install-command .btn {
+  border: 0;
+  border-left: 1px solid var(--scp-border);
+  border-radius: 0;
+  color: var(--scp-code-text);
+}
+
+.copy-status,
+.pwa-status,
+.example-help {
+  min-height: 1.5rem;
+  margin: 0.5rem 0 0;
+  color: var(--scp-muted);
+  font-size: 0.875rem;
+}
+
+.security-note {
+  padding: 1rem;
+  border-left: 4px solid var(--scp-primary);
+  background: var(--scp-primary-soft);
+}
+
+.example-output {
+  min-height: 16rem;
+  white-space: pre;
+}
+
+.pwa-update-notice {
+  position: fixed;
+  z-index: 1090;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(32rem, calc(100% - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--scp-border);
+  border-radius: 0.5rem;
+  color: var(--scp-text);
+  background: var(--scp-surface);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 18%);
+}
+
+.pwa-update-notice[hidden] {
+  display: none;
+}
+
+.pwa-update-notice span {
+  flex: 1;
+}
+
+.site-footer {
+  padding: 2.5rem 0;
+  color: var(--scp-muted);
+  background: var(--scp-surface);
+}
+
+.site-footer a {
+  color: var(--scp-text);
+}
+
+@media (max-width: 1199.98px) {
+  [data-nav-enhanced="true"] .site-navbar .navbar-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  [data-nav-enhanced="true"] .site-navbar .navbar-collapse:not(.show) {
+    display: none;
+  }
+
+  .site-navbar .navbar-collapse {
+    padding: 1rem 0 0.75rem;
+  }
+
+  .theme-control {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--scp-border);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .hero {
+    padding: 3.5rem 0;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .install-command {
+    flex-direction: column;
+  }
+
+  .install-command .btn {
+    min-height: 2.75rem;
+    border-top: 1px solid var(--scp-border);
+    border-left: 0;
+  }
+
+  .pwa-update-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
