@@ -42,8 +42,9 @@ Download   Remote  Local
 - `src/errors`: public typed errors.
 - `src/types`: public TypeScript types.
 - `tests`: Vitest unit and mock-transport integration tests.
-- `docs`: architecture notes and release notes.
-- `site`: GitHub Pages documentation site.
+- `guides`: handwritten architecture notes and release notes.
+- `site`: source for the GitHub Pages documentation site.
+- `docs`: generated GitHub Pages output only; do not store handwritten source here.
 
 Keep CLI concerns out of the library layer. The library must not call `process.exit()`.
 
@@ -117,6 +118,8 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run docs:links
+npm run docs:build
 npm pack --dry-run
 ```
 
@@ -162,10 +165,11 @@ Important existing test areas:
 Documentation is split by audience:
 
 - `README.md`: primary npm and GitHub usage guide.
-- `docs/ARCHITECTURE.md`: implementation and dependency architecture.
-- `docs/release-notes/`: long-form release announcements.
+- `guides/ARCHITECTURE.md`: implementation and dependency architecture.
+- `guides/release-notes/`: long-form release announcements.
 - `CHANGELOG.md`: concise version history.
-- `site/`: GitHub Pages documentation for browser-based project docs.
+- `site/`: source for browser-based project documentation.
+- `docs/`: generated GitHub Pages output only.
 
 README and site structure should stay aligned:
 
@@ -173,7 +177,7 @@ README and site structure should stay aligned:
   the site.
 - Use `CLI Usage`, not `Basic Usage`, for command-line syntax, examples, operands, and options.
 - Keep `User Guides` linked to the English and Simplified Chinese files under
-  `docs/release-notes/`.
+  `guides/release-notes/`.
 - Keep password examples visible early for common user workflows, while also warning that CLI
   password arguments may appear in shell history or process listings.
 - Document `--timeout` and `timeout` as the SSH connection ready timeout / `readyTimeout`; do
@@ -183,7 +187,7 @@ README and site structure should stay aligned:
 - Include `SSH_AUTH_SOCK` wherever environment variables or SSH agent authentication are
   documented.
 
-Update `README.md`, `docs/ARCHITECTURE.md`, and `site/` when changing:
+Update `README.md`, `guides/ARCHITECTURE.md`, and `site/` when changing:
 
 - CLI syntax or options
 - configuration format or precedence
@@ -191,7 +195,7 @@ Update `README.md`, `docs/ARCHITECTURE.md`, and `site/` when changing:
 - authentication or host verification behavior
 - transfer mechanism or dependency limitations
 
-Add or update files under `docs/release-notes/` for long-form release notes. Do not create a
+Add or update files under `guides/release-notes/` for long-form release notes. Do not create a
 root-level `release-notes/` directory.
 
 README examples must not contain real credentials.

@@ -7,5 +7,9 @@ await upload({
   localPath: "./dist",
   remotePath: "/var/www/example",
   recursive: true,
-  overwrite: true
+  overwrite: true,
+  postUploadCommands: [
+    "cd /var/www/example && npm install --omit=dev",
+    "pm2 reload example"
+  ]
 });

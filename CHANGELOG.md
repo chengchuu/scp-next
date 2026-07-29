@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Added opt-in, repeatable `--post-upload-command` commands for CLI uploads and configured
+  upload jobs.
+- Added library `postUploadCommands`, `client.exec()`, `ExecResult`, and typed
+  `RemoteCommandError` APIs.
+- Kept remote command execution separate from SFTP, sequential, disabled for downloads and dry
+  runs, and fail-fast on non-zero exit codes.
+- Added bounded command output capture, CLI failure propagation, secret redaction, and mock-based
+  coverage for upload failure, ordering, command failure, dry-run, and connection cleanup.
+
 ## 1.0.19
 
 - Refined README structure for clearer installation, quick start, basic usage, advanced usage,
@@ -9,7 +20,7 @@
 - Clarified SSH agent usage, `SSH_AUTH_SOCK`, timeout behavior, and configuration-file
   recommendations.
 - Expanded GitHub Pages documentation with CLI, library, and configuration options.
-- Moved release notes under `docs/release-notes/` for cleaner documentation organization.
+- Moved release notes under `guides/release-notes/` for cleaner documentation organization.
 
 ## 1.0.14
 

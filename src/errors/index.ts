@@ -7,6 +7,7 @@ export type ScpNextErrorCode =
   | "SCP_NEXT_AUTHENTICATION_ERROR"
   | "SCP_NEXT_CONNECTION_ERROR"
   | "SCP_NEXT_TRANSFER_ERROR"
+  | "SCP_NEXT_REMOTE_COMMAND_ERROR"
   | "SCP_NEXT_FILESYSTEM_ERROR"
   | "SCP_NEXT_HOST_VERIFICATION_ERROR";
 
@@ -55,6 +56,32 @@ export class ConnectionError extends ScpNextError {
 export class TransferError extends ScpNextError {
   constructor(message: string, options: Omit<ScpNextErrorOptions, "code"> = {}) {
     super(message, { ...options, code: "SCP_NEXT_TRANSFER_ERROR" });
+  }
+}
+
+export interface RemoteCommandErrorOptions extends Omit<ScpNextErrorOptions, "code"> {
+  exitCode: number | null;
+  signal?: string | undefined;
+  stdout?: string | undefined;
+  stderr?: string | undefined;
+}
+
+export class RemoteCommandError extends ScpNextError {
+  readonly exitCode: number | null;
+  readonly signal?: string | undefined;
+  readonly stdout: string;
+  readonly stderr: string;
+
+  constructor(message: string, options: RemoteCommandErrorOptions) {
+    super(message, {
+      code: "SCP_NEXT_REMOTE_COMMAND_ERROR",
+      ...(options.cause !== undefined ? { cause: options.cause } : {}),
+      ...(options.context !== undefined ? { context: options.context } : {})
+    });
+    this.exitCode = options.exitCode;
+    this.signal = options.signal;
+    this.stdout = options.stdout ?? "";
+    this.stderr = options.stderr ?? "";
   }
 }
 
