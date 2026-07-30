@@ -49,6 +49,14 @@ export function generateTypeScriptExample(values: ExampleValues): string {
   ].join("\n");
 }
 
+export async function copyExampleText(
+  text: string,
+  writeText: (value: string) => Promise<void> = (value) =>
+    navigator.clipboard.writeText(value)
+): Promise<void> {
+  await writeText(text);
+}
+
 function readValues(form: HTMLFormElement): ExampleValues {
   const data = new FormData(form);
   const value = (name: string) => {
@@ -89,6 +97,18 @@ if (typeof document !== "undefined") {
   const form = document.querySelector<HTMLFormElement>("[data-example-form]");
   const output = document.querySelector<HTMLElement>("[data-example-output]");
   const errorRegion = document.querySelector<HTMLElement>("[data-example-error]");
+  const copyButton = document.querySelector<HTMLButtonElement>("[data-copy-example]");
+  const copyStatus = document.querySelector<HTMLElement>("[data-copy-example-status]");
+  let copyRequestId = 0;
+
+  const resetCopyFeedback = () => {
+    copyRequestId += 1;
+    if (copyButton) {
+      copyButton.disabled = false;
+      copyButton.textContent = "Copy code";
+    }
+    if (copyStatus) copyStatus.textContent = "";
+  };
 
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -100,6 +120,7 @@ if (typeof document !== "undefined") {
             ? generateCliExample(values)
             : generateTypeScriptExample(values);
       }
+      resetCopyFeedback();
       if (errorRegion) errorRegion.textContent = "";
     } catch (error) {
       if (errorRegion) {
@@ -108,4 +129,28 @@ if (typeof document !== "undefined") {
       }
     }
   });
+
+  copyButton?.addEventListener("click", () => {
+    const text = output?.textContent ?? "";
+    const requestId = ++copyRequestId;
+    copyButton.disabled = true;
+    copyButton.textContent = "Copying...";
+    void copyExampleText(text)
+      .then(() => {
+        if (requestId !== copyRequestId) return;
+        copyButton.disabled = false;
+        copyButton.textContent = "Copied";
+        if (copyStatus) copyStatus.textContent = "Generated example copied.";
+      })
+      .catch(() => {
+        if (requestId !== copyRequestId) return;
+        copyButton.disabled = false;
+        copyButton.textContent = "Copy code";
+        if (copyStatus) {
+          copyStatus.textContent =
+            "Copy was unavailable. Select the generated example manually.";
+        }
+      });
+  });
+  if (copyButton) copyButton.hidden = false;
 }

@@ -216,7 +216,18 @@
               </form>
             </div>
             <div class="col-lg-7">
-              <h2 class="h4">Generated example</h2>
+              <div class="example-output-heading">
+                <h2 class="h4 mb-0">Generated example</h2>
+                <button
+                  class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  aria-describedby="copy-example-status"
+                  data-copy-example
+                  hidden
+                >
+                  Copy code
+                </button>
+              </div>
               <pre
                 class="example-output"
                 tabindex="0"
@@ -225,6 +236,13 @@
   --username your-username \
   --recursive \
   --dry-run</code></pre>
+              <p
+                class="copy-status"
+                id="copy-example-status"
+                role="status"
+                aria-live="polite"
+                data-copy-example-status
+              ></p>
               <p class="example-help">
                 CLI examples include <code>--dry-run</code>. TypeScript examples read the
                 password from an environment variable, set <code>dryRun: true</code>, and
