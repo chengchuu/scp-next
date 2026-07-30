@@ -1,6 +1,6 @@
 {
   "name": "scp-next",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "An SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -8,9 +8,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -25,17 +30,25 @@
     "guides"
   ],
   "scripts": {
-    "build": "tsup",
-    "clean": "rimraf dist docs coverage",
-    "dev": "tsx src/cli/index.ts",
+    "build": "rollup --config ./scripts/rollup.config.mjs",
+    "build:dev": "webpack --config ./scripts/webpack.config.dev.js",
+    "build:site": "cross-env GITHUB_PAGES=true webpack --mode production --config ./scripts/webpack.config.dev.js",
+    "clean": "rimraf dist dist-dev .pages-api docs coverage",
+    "dev": "webpack serve --config ./scripts/webpack.config.dev.js",
+    "cli:dev": "tsx src/cli/index.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs:build": "npm run docs:links && node scripts/build-pages.js",
+    "docs": "npm run docs:links && typedoc --out .pages-api --entryPoints src/index.ts --readme README.md --excludeProtected --excludePrivate --excludeInternal --hideGenerator && npm run build:site && node scripts/build-pages.js && npm run seo:validate && npm run pwa:validate",
+    "docs:build": "npm run docs",
     "docs:links": "node scripts/validate-doc-links.js",
+    "seo:validate": "node scripts/validate-seo.js",
+    "pwa:validate": "node scripts/validate-pwa.js",
+    "pages:preview": "npm run docs && node scripts/preview-pages.js",
+    "preview": "npm run typecheck && npm run lint && npm test && npm run build && npm run docs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit --project tsconfig.site.json",
     "prepublishOnly": "npm run clean && npm run typecheck && npm run lint && npm test && npm run build"
   },
   "keywords": [
@@ -65,25 +78,39 @@
   },
   "dependencies": {
     "commander": "^12.1.0",
-    "mazey": "^5.5.0",
+    "mazey": "^5.6.1",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^11.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^22.10.2",
     "@types/ssh2": "^1.15.5",
     "@types/ssh2-sftp-client": "^9.0.4",
     "@vitest/coverage-v8": "^4.1.9",
+    "bootstrap": "5.3.8",
+    "cross-env": "^10.1.0",
+    "css-loader": "^7.1.4",
     "eslint": "^9.17.0",
+    "html-webpack-plugin": "^5.6.7",
+    "mini-css-extract-plugin": "^2.10.2",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
-    "tsup": "^8.3.5",
+    "rollup": "^4.62.2",
+    "rollup-plugin-dts": "^6.4.1",
+    "ts-loader": "^9.6.2",
+    "tslib": "^2.8.1",
+    "typedoc": "^0.28.20",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1",
+    "webpack-dev-server": "^6.0.0"
   },
   "overrides": {
     "esbuild": "^0.28.1"

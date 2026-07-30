@@ -18,6 +18,9 @@
 `scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
 It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
 Developer documentation is available at [GitHub Pages](https://chengchuu.github.io/scp-next/).
+Use the [interactive examples](https://chengchuu.github.io/scp-next/examples/) to generate
+CLI and TypeScript transfer snippets, or browse the
+[API documentation](https://chengchuu.github.io/scp-next/api/).
 
 ## Features
 
@@ -218,7 +221,7 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--create-directories`                | Create missing destination directories. Enabled by default.            |
 | `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
-| `--post-upload-command <command>`     | Run a remote command after a successful upload. Repeatable.             |
+| `--post-upload-command <command>`     | Run a remote command after a successful upload. Repeatable.            |
 | `--timeout <milliseconds>`            | SSH connection ready timeout in milliseconds.                          |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |
 | `--quiet`                             | Disable progress and non-error output.                                 |
@@ -316,27 +319,27 @@ await upload({
 
 ### Library Options
 
-| Field               | Used by         | Description                                                  |
-| ------------------- | --------------- | ------------------------------------------------------------ |
-| `host`              | server          | SSH server host.                                             |
-| `port`              | server          | SSH server port. Defaults to `22`.                           |
-| `username`          | server          | SSH username.                                                |
-| `password`          | server          | SSH password.                                                |
-| `privateKey`        | server          | Private-key content as a string or Buffer.                   |
-| `privateKeyFile`    | server          | Private-key file path.                                       |
-| `passphrase`        | server          | Passphrase for an encrypted private key.                     |
-| `agent`             | server          | SSH agent socket path.                                       |
-| `hostFingerprint`   | server          | Expected server host-key SHA-256 fingerprint.                |
-| `knownHostsFile`    | server          | Known-hosts file for host verification.                      |
-| `localPath`         | upload/download | Local source for upload or local destination for download.   |
-| `remotePath`        | upload/download | Remote destination for upload or remote source for download. |
-| `recursive`         | transfer        | Transfer directories recursively. Defaults to `false`.       |
-| `overwrite`         | transfer        | Allow replacing existing files.                              |
-| `createDirectories` | transfer        | Create missing destination directories. Defaults to `true`.  |
-| `dryRun`            | transfer        | Validate and plan without modifying local or remote files.   |
-| `timeout`           | server/transfer | SSH connection ready timeout in milliseconds.                |
-| `postUploadCommands` | upload         | Remote command strings run sequentially after success.       |
-| `onProgress`        | transfer        | Progress callback for file and directory transfers.          |
+| Field                | Used by         | Description                                                  |
+| -------------------- | --------------- | ------------------------------------------------------------ |
+| `host`               | server          | SSH server host.                                             |
+| `port`               | server          | SSH server port. Defaults to `22`.                           |
+| `username`           | server          | SSH username.                                                |
+| `password`           | server          | SSH password.                                                |
+| `privateKey`         | server          | Private-key content as a string or Buffer.                   |
+| `privateKeyFile`     | server          | Private-key file path.                                       |
+| `passphrase`         | server          | Passphrase for an encrypted private key.                     |
+| `agent`              | server          | SSH agent socket path.                                       |
+| `hostFingerprint`    | server          | Expected server host-key SHA-256 fingerprint.                |
+| `knownHostsFile`     | server          | Known-hosts file for host verification.                      |
+| `localPath`          | upload/download | Local source for upload or local destination for download.   |
+| `remotePath`         | upload/download | Remote destination for upload or remote source for download. |
+| `recursive`          | transfer        | Transfer directories recursively. Defaults to `false`.       |
+| `overwrite`          | transfer        | Allow replacing existing files.                              |
+| `createDirectories`  | transfer        | Create missing destination directories. Defaults to `true`.  |
+| `dryRun`             | transfer        | Validate and plan without modifying local or remote files.   |
+| `timeout`            | server/transfer | SSH connection ready timeout in milliseconds.                |
+| `postUploadCommands` | upload          | Remote command strings run sequentially after success.       |
+| `onProgress`         | transfer        | Progress callback for file and directory transfers.          |
 
 `client.exec(command, options)` returns `ExecResult` with `stdout`, `stderr`, `exitCode`,
 and an optional signal. Its optional `timeout` is command-specific; `failOnStderr` can treat
@@ -651,7 +654,7 @@ npm run lint
 npm test
 npm run build
 npm run docs:links
-npm run docs:build
+npm run docs
 npm pack --dry-run
 ```
 
@@ -660,8 +663,9 @@ npm pack --dry-run
 ## Publishing
 
 The published package includes `dist`, README, license, changelog, and handwritten guides. The CLI
-entry is `dist/cli/index.js` and contains a Node.js shebang. `npm run docs:build` generates the
-GitHub Pages artifact under `docs/`; do not edit or commit that output directly.
+entry is `dist/cli/index.js` and contains a Node.js shebang. `npm run docs` generates TypeDoc,
+builds the website and examples with Webpack, assembles the GitHub Pages artifact under `docs/`,
+and validates its SEO and PWA metadata. Do not edit or commit generated output directly.
 
 ## Transfer Mechanism
 
