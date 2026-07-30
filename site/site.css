@@ -285,6 +285,18 @@ a {
   white-space: pre;
 }
 
+.example-output-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.example-output-heading .btn {
+  flex: 0 0 auto;
+}
+
 .pwa-update-notice {
   position: fixed;
   z-index: 1090;

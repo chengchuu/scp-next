@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import { URL } from "node:url";
 
-import { generateCliExample, generateTypeScriptExample } from "../site/examples/index.ts";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  copyExampleText,
+  generateCliExample,
+  generateTypeScriptExample
+} from "../site/examples/index.ts";
 
 const base = {
   exampleInterface: "cli",
@@ -13,6 +20,15 @@ const base = {
 };
 
 describe("website example generator", () => {
+  it("keeps the copy control hidden until its script initializes", async () => {
+    const template = await readFile(
+      new URL("../site/examples/index.html", import.meta.url),
+      "utf8"
+    );
+
+    expect(template).toMatch(/data-copy-example\s+hidden/);
+  });
+
   it("maps upload from local source to remote destination", () => {
     expect(generateCliExample(base)).toContain(
       "scp-next upload './build output' /var/www/example"
@@ -42,5 +58,15 @@ describe("website example generator", () => {
     expect(source).toContain("password: process.env.SCP_NEXT_PASSWORD");
     expect(source).toContain("dryRun: true");
     expect(source).not.toContain("your-password");
+  });
+
+  it("copies the complete generated example", async () => {
+    const source = generateCliExample(base);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+
+    await copyExampleText(source, writeText);
+
+    expect(writeText).toHaveBeenCalledOnce();
+    expect(writeText).toHaveBeenCalledWith(source);
   });
 });
