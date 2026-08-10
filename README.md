@@ -642,8 +642,8 @@ assignment forms from CLI logs and errors.
 
 ## User Guides
 
-- [English](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-en.md)
-- [简体中文](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-zh.md)
+- [English](https://github.com/chengchuu/scp-next/blob/main/guides/RELEASE_NOTES/introducing-scp-next-v1.0.19-en.md)
+- [简体中文](https://github.com/chengchuu/scp-next/blob/main/guides/RELEASE_NOTES/introducing-scp-next-v1.0.19-zh.md)
 
 ## Development
 
