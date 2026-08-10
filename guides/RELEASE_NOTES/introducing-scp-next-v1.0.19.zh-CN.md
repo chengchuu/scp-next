@@ -1,8 +1,9 @@
-# `scp-next` v1.0.19: 面向 Node.js 开发者的 SSH 文件传输工具
+<!-- omit from toc -->
+# scp-next v1.0.19: 面向 Node.js 开发者的 SSH 文件传输工具
 
 ![scp-next](http://blog.mazey.net/wp-content/uploads/2026/07/scp-next-SF-s7x3.jpg)
 
-本文介绍 `scp-next` v1.0.19 的 npm 安装方式和 CLI 用法。内容还包括配置文件、凭据安全、库 API 和新成员接手流程。
+本文介绍 scp-next v1.0.19 的 npm 安装方式和 CLI 用法。内容还包括配置文件、凭据安全、库 API 和项目接手清单。
 
 ```plain
 英文标签:
@@ -347,3 +348,5 @@ copy(options);
 原文: <https://blog.mazey.net/6454.html>
 
 <!-- ID: introducing-scp-next-v1.0.19.zh-CN.md -->
+
+(完)
