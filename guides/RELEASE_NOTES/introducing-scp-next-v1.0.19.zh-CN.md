@@ -1,10 +1,15 @@
-# `scp-next` v1.0.19 项目介绍: 面向 Node.js 开发者的 SSH 文件传输工具
+# `scp-next` v1.0.19: 面向 Node.js 开发者的 SSH 文件传输工具
 
 ![scp-next](http://blog.mazey.net/wp-content/uploads/2026/07/scp-next-SF-s7x3.jpg)
 
-图片来源: <http://blog.mazey.net/wp-content/uploads/2026/07/scp-next-SF-s7x3.jpg>
-
 本文介绍 `scp-next` v1.0.19 的 npm 安装方式和 CLI 用法。内容还包括配置文件、凭据安全、库 API 和新成员接手流程。
+
+```plain
+英文标签:
+#ScpNext #Nodejs #TypeScript #SFTP #SSH #FileTransfer #CommandLine #DeveloperTools #NpmPackage #DevOps
+中文标签:
+#文件传输 #命令行工具 #开发者工具 #自动化部署 #服务器运维 #配置管理 #密钥认证 #后端开发 #工程实践 #技术分享
+```
 
 - [项目概述](#项目概述)
 - [适用场景](#适用场景)
@@ -20,7 +25,7 @@
 
 ## 项目概述
 
-`scp-next` 是一个 SCP 风格的 npm 包。他同时提供命令行工具和库，用于通过 SSH 安全传输文件。虽然包名包含 SCP，但普通传输使用 SFTP。`ssh2-sftp-client` 提供 SFTP 功能。普通传输不会执行远程 shell 命令。
+`scp-next` 是一个 SCP 风格的 npm 包。他同时提供命令行工具和库，用于通过 SSH 安全传输文件。虽然包名包含 SCP，但普通传输使用 SFTP。
 
 ## 适用场景
 
@@ -341,4 +346,4 @@ copy(options);
 作者: [除除](https://github.com/chengchuu)
 原文: <https://blog.mazey.net/6454.html>
 
-<!-- ID: introducing-scp-next-v1.0.19-zh -->
+<!-- ID: introducing-scp-next-v1.0.19.zh-CN.md -->
