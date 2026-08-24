@@ -13,7 +13,7 @@ Despite the package name, file transfers use SFTP internally through `ssh2-sftp-
 Explicit remote command execution uses `ssh2` through a separate command-executor boundary. Do
 not implement SSH, SCP, or SFTP protocol logic manually.
 
-The published runtime supports Node.js 18.18.0 or later. CI currently builds and publishes with
+The published runtime supports Node.js 18.20.4 or later. CI currently builds and publishes with
 Node.js 22.
 
 ## Required Terminology

@@ -7,7 +7,7 @@
 [![docs][docs-image]][docs-url]
 
 [npm-image]: https://img.shields.io/npm/v/scp-next
-[npm-url]: https://npmjs.org/package/scp-next
+[npm-url]: https://www.npmjs.com/package/scp-next
 [license-image]: https://img.shields.io/npm/l/scp-next
 [license-url]: https://github.com/chengchuu/scp-next
 [node-image]: https://img.shields.io/node/v/scp-next
@@ -15,21 +15,12 @@
 [docs-image]: https://img.shields.io/badge/docs-GitHub%20Pages-2b6cb0
 [docs-url]: https://chengchuu.github.io/scp-next/
 
-`scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
-It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
-Developer documentation is available at [GitHub Pages](https://chengchuu.github.io/scp-next/).
-Use the [interactive examples](https://chengchuu.github.io/scp-next/examples/) to generate
-CLI and TypeScript transfer snippets, or browse the
+`scp-next` is an SCP-style CLI and library for secure SSH file transfers. It uses SFTP through
+`ssh2-sftp-client` rather than implementing SCP or SFTP directly.
+
+Read the [documentation](https://chengchuu.github.io/scp-next/), generate CLI snippets with the
+[interactive examples](https://chengchuu.github.io/scp-next/examples/), or browse the
 [API documentation](https://chengchuu.github.io/scp-next/api/).
-
-## Features
-
-- Upload and download files or directories recursively.
-- CLI usage with clear `<source> <destination>` operands.
-- ESM `import` and CommonJS `require` support.
-- JSON configuration files, named profiles, and configured jobs.
-- Reusable transfer client.
-- Optional sequential remote commands after a successful upload.
 
 ## Contents
 
@@ -86,7 +77,7 @@ Downloading: /var/log/example.log 1.0 MB / 1.0 MB (100%)
 ```
 
 Password arguments are convenient, but they may be exposed through shell history and process listings.
-Prefer `SCP_NEXT_PASSWORD` environment variable in shared or production environments. For key authentication, use a protected private-key file.
+Prefer the `SCP_NEXT_PASSWORD` environment variable in shared or production environments. For key authentication, use a protected private-key file.
 
 Use the library:
 
@@ -122,7 +113,9 @@ CLI commands use `<source> <destination>`. Programmatic upload and download APIs
 | Upload    | Local  | Remote      |
 | Download  | Remote | Local       |
 
-Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename. Missing destination directories are created by default.
+Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or
+ends with a path separator, `scp-next` places the source inside that directory using the source
+basename. Missing destination directories are created by default.
 
 ### Upload Examples
 
@@ -162,7 +155,7 @@ scp-next upload ./dist /var/www/example \
 
 `--post-upload-command` is repeatable and upload-only. Commands run sequentially on the
 remote server with the SSH user's permissions. The first non-zero exit code stops the sequence
-and makes the CLI exit non-zero. A missing exit status is also treated as failure.
+and causes the CLI to exit with a nonzero status. A missing exit status is also treated as failure.
 
 Use an encrypted private key:
 
@@ -325,7 +318,7 @@ await upload({
 | `port`               | server          | SSH server port. Defaults to `22`.                           |
 | `username`           | server          | SSH username.                                                |
 | `password`           | server          | SSH password.                                                |
-| `privateKey`         | server          | Private-key content as a string or Buffer.                   |
+| `privateKey`         | server          | Private-key content as a string or a `Buffer`.               |
 | `privateKeyFile`     | server          | Private-key file path.                                       |
 | `passphrase`         | server          | Passphrase for an encrypted private key.                     |
 | `agent`              | server          | SSH agent socket path.                                       |
@@ -342,7 +335,7 @@ await upload({
 | `onProgress`         | transfer        | Progress callback for file and directory transfers.          |
 
 `client.exec(command, options)` returns `ExecResult` with `stdout`, `stderr`, `exitCode`,
-and an optional signal. Its optional `timeout` is command-specific; `failOnStderr` can treat
+and an optional `signal`. Its optional `timeout` is command-specific; `failOnStderr` can treat
 stderr output as failure even when the exit code is zero. `maxBuffer` limits combined captured
 output and defaults to 10 MiB. A timeout closes the SSH channel; whether the remote process is
 terminated depends on the SSH server.
@@ -351,7 +344,8 @@ terminated depends on the SSH server.
 
 ### Configuration Files
 
-Use `scp-next.config.json` in the current directory. `scp-next` also auto-detects these rc-style filenames: `.scp-nextrc`, `.scp-nextrc.json`.
+Use `scp-next.config.json` in the current directory. `scp-next` also auto-detects these rc-style
+filenames: `.scp-nextrc` and `.scp-nextrc.json`.
 
 ```text
 scp-next.config.json
