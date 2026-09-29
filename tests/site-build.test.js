@@ -37,7 +37,7 @@ describe("TypeDoc HTML transformation", () => {
       `<link rel="canonical" href="${projectConfig.site.pages.api.url}">`
     );
     expect(transformed).toContain('class="site-project-links"');
-    expect(transformed).toContain("data-pwa-update-now");
+    expect(transformed).not.toMatch(/data-pwa-update|site-pwa-update/);
     expect(transformed.match(/<h1\b/g)).toHaveLength(1);
   });
 

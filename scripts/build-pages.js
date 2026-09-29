@@ -19,8 +19,6 @@ const defaultRoot = path.resolve(currentDirectory, "..");
 const marker = projectConfig.site.markerPrefix;
 const seoStart = `<!-- ${marker}-seo:start -->`;
 const seoEnd = `<!-- ${marker}-seo:end -->`;
-const pwaUiStart = `<!-- ${marker}-pwa-ui:start -->`;
-const pwaUiEnd = `<!-- ${marker}-pwa-ui:end -->`;
 
 function escapeAttribute(value) {
   return String(value)
@@ -145,7 +143,6 @@ export function transformApiHtml(html, relativeFile) {
   let output = html
     .replace(markerExpression(seoStart, seoEnd), "")
     .replace(/<nav class="site-project-links"[\s\S]*?<\/nav>/g, "")
-    .replace(markerExpression(pwaUiStart, pwaUiEnd), "")
     .replace(/<title>[^<]*<\/title>/i, `<title>${escapeAttribute(title)}</title>`)
     .replace(/<meta name="description"[^>]*>/i, "")
     .replace(/<link rel="canonical"[^>]*>/i, "")
@@ -159,15 +156,6 @@ export function transformApiHtml(html, relativeFile) {
   }
   const links = `<nav class="site-project-links" aria-label="Project links"><a href="${pages.home.url}">Project home</a><a href="${pages.api.url}">API overview</a><a href="${projectConfig.urls.github}">GitHub</a><a href="${projectConfig.urls.npm}">npm package</a><span class="site-pwa-status" role="status" aria-live="polite" data-pwa-status></span><label class="theme-control"><span>Theme</span><select data-theme-select aria-label="Choose API documentation theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></nav>`;
   output = output.replace(toolbarPattern, `$1${links}`);
-  const updateUi = [
-    pwaUiStart,
-    '<aside class="site-pwa-update" aria-label="Website update" data-pwa-update hidden>',
-    `<span>A new version of the ${escapeAttribute(projectConfig.brand.displayName)} website is available.</span>`,
-    '<button type="button" data-pwa-update-now>Update now</button>',
-    "</aside>",
-    pwaUiEnd
-  ].join("");
-  output = output.replace("</body>", `${updateUi}</body>`);
   return ensureOneH1(output, title);
 }
 
