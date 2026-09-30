@@ -101,6 +101,9 @@ export default {
     path: resolve("../dist-dev"),
     publicPath: pagesBase
   },
+  optimization: {
+    minimizeOptions: { html: false }
+  },
   devServer: {
     port: 8080,
     host: "0.0.0.0",
