@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -8,6 +8,16 @@ import projectConfig from "../project.config.js";
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const docs = path.resolve(currentDirectory, "..", "docs");
 const failures = [];
+function htmlFiles(directory) {
+  return readdirSync(directory).flatMap((name) => {
+    const file = path.join(directory, name);
+    return statSync(file).isDirectory()
+      ? htmlFiles(file)
+      : file.endsWith(".html")
+        ? [file]
+        : [];
+  });
+}
 
 function read(relativePath) {
   const file = path.join(docs, relativePath);
@@ -74,6 +84,20 @@ for (const page of ["index.html", "examples/index.html", "api/index.html"]) {
     failures.push(`${page}: theme-color metadata is missing`);
   }
 }
+for (const file of htmlFiles(docs)) {
+  const html = readFileSync(file, "utf8");
+  for (const forbidden of [
+    "data-pwa-update",
+    "data-pwa-update-now",
+    "pwa-update-notice",
+    "site-pwa-update"
+  ]) {
+    if (html.includes(forbidden))
+      failures.push(
+        `${path.relative(docs, file)} contains removed update UI: ${forbidden}`
+      );
+  }
+}
 
 const worker = read("service-worker.js").toString("utf8");
 try {
@@ -87,8 +111,8 @@ if (/__(?:BASE_PATH|CACHE_PREFIX|CACHE_NAME|APP_SHELL)__/.test(worker)) {
 if (!worker.includes(`const PROJECT_BASE = "${projectConfig.site.basePath}"`)) {
   failures.push("service-worker.js scope guard does not match the Pages base");
 }
-if (!worker.includes('event.data?.type === "SKIP_WAITING"')) {
-  failures.push("service-worker.js lacks explicit update activation handling");
+if (/SKIP_WAITING|skipWaiting\s*\(/.test(worker)) {
+  failures.push("service-worker.js contains forced update activation");
 }
 if (!worker.includes("matchCurrentCache(PROJECT_BASE)")) {
   failures.push("service-worker.js navigation fallback is not the precached root");

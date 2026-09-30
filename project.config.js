@@ -4,6 +4,7 @@ import { URL } from "node:url";
 import pkg from "./package.json" with { type: "json" };
 import { packageDetails, repositoryDetails } from "./scripts/project-config-utils.js";
 
+const shortName = "scp-next";
 const packageConfig = packageDetails(pkg);
 const repository = repositoryDetails(pkg.repository);
 const siteUrl = new URL(pkg.homepage);
@@ -63,9 +64,13 @@ const pages = {
   }
 };
 const assets = {
-  faviconFile: "logo.svg",
-  logoFile: "logo.svg",
-  openGraphImageFile: "open-graph-1200x630.png"
+  faviconFile: "scp-next-logo-32x32.png",
+  faviconType: "image/png",
+  faviconSizes: "32x32",
+  appleTouchIconFile: "scp-next-logo-apple-touch-180x180.png",
+  appleTouchIconSizes: "180x180",
+  logoFile: "scp-next-logo-192x192.png",
+  openGraphImageFile: "scp-next-logo-open-graph-1200x630.jpg"
 };
 const software = {
   "@type": "SoftwareSourceCode",
@@ -84,7 +89,7 @@ export default deepFreeze({
   repository,
   brand: {
     displayName,
-    shortName: "scp-next"
+    shortName
   },
   urls: {
     github: githubUrl,
@@ -95,6 +100,7 @@ export default deepFreeze({
   assets: {
     ...assets,
     faviconUrl: `${basePath}images/${assets.faviconFile}`,
+    appleTouchIconUrl: `${basePath}images/${assets.appleTouchIconFile}`,
     logoUrl: `${basePath}images/${assets.logoFile}`
   },
   site: {
@@ -111,8 +117,8 @@ export default deepFreeze({
       url: new URL(`images/${assets.openGraphImageFile}`, siteUrl).href,
       width: 1200,
       height: 630,
-      type: "image/png",
-      alt: "scp-next local-to-remote transfer arrows on a green background."
+      type: "image/jpeg",
+      alt: "scp-next green transfer logo with white arrows on a white background."
     },
     rootJsonLd: {
       "@context": "https://schema.org",
@@ -134,7 +140,7 @@ export default deepFreeze({
   },
   pwa: {
     name: `${displayName} documentation`,
-    shortName: "scp-next",
+    shortName,
     display: "standalone",
     backgroundColor: theme.colorLight,
     themeColor: theme.colorPrimary,
@@ -145,22 +151,22 @@ export default deepFreeze({
       "Installable project website, examples, and API documentation for scp-next.",
     icons: [
       {
-        file: "icon-192.png",
-        src: `${basePath}images/icon-192.png`,
+        file: "scp-next-logo-192x192.png",
+        src: `${basePath}images/scp-next-logo-192x192.png`,
         sizes: "192x192",
         type: "image/png",
         purpose: "any"
       },
       {
-        file: "icon-512.png",
-        src: `${basePath}images/icon-512.png`,
+        file: "scp-next-logo-512x512.png",
+        src: `${basePath}images/scp-next-logo-512x512.png`,
         sizes: "512x512",
         type: "image/png",
         purpose: "any"
       },
       {
-        file: "icon-maskable-512.png",
-        src: `${basePath}images/icon-maskable-512.png`,
+        file: "scp-next-logo-maskable-512x512.png",
+        src: `${basePath}images/scp-next-logo-maskable-512x512.png`,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable"

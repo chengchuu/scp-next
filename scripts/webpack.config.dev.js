@@ -21,6 +21,10 @@ const templateParameters = {
   EXAMPLES_TITLE: pages.examples.title,
   EXAMPLES_URL: pages.examples.url,
   FAVICON_URL: `${pagesBase}images/${projectConfig.assets.faviconFile}`,
+  FAVICON_TYPE: projectConfig.assets.faviconType,
+  FAVICON_SIZES: projectConfig.assets.faviconSizes,
+  APPLE_TOUCH_ICON_URL: `${pagesBase}images/${projectConfig.assets.appleTouchIconFile}`,
+  APPLE_TOUCH_ICON_SIZES: projectConfig.assets.appleTouchIconSizes,
   GITHUB_URL: projectConfig.urls.github,
   INSTALL_COMMAND: projectConfig.package.installCommand,
   LICENSE_URL: projectConfig.urls.license,
@@ -70,7 +74,15 @@ export default {
   entry: {
     shared: [
       resolve("../site/shared.ts"),
-      resolve("../images/logo.svg"),
+      ...[
+        ...new Set([
+          projectConfig.assets.logoFile,
+          projectConfig.assets.faviconFile,
+          projectConfig.assets.appleTouchIconFile,
+          projectConfig.assets.openGraphImageFile,
+          ...projectConfig.pwa.icons.map((icon) => icon.file)
+        ])
+      ].map((file) => resolve(`../images/${file}`)),
       resolve("../site/assets/transfer-flow.svg")
     ],
     home: {
@@ -112,7 +124,7 @@ export default {
         use: [MiniCssExtractPlugin.loader, "css-loader"]
       },
       {
-        test: /\.svg$/i,
+        test: /\.(svg|png|jpe?g)$/i,
         type: "asset/resource",
         generator: {
           filename: "images/[name][ext]"
