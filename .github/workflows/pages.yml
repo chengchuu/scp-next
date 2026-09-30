@@ -31,6 +31,10 @@ jobs:
         with:
           node-version: 22
 
+      # npm 10 bundled with Node 22 crashes while resolving Vitest peer dependencies.
+      - name: Setup npm
+        run: npm install --global npm@11.18.0
+
       - name: Install dependencies
         run: npm install
 

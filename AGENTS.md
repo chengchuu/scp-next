@@ -275,8 +275,8 @@ README examples must not contain real credentials.
   under the project-specific key, and synchronize TypeDoc plus browser theme-color state.
 - Enable the service worker by default only for production Pages builds. Local PWA testing requires
   `PWA_ENABLED=true`; registration must still pass the safe-environment and project-scope checks.
-  Keep interception within the project base path and require explicit user action before
-  activating a waiting update.
+  Keep interception within the project base path and let waiting workers activate through the
+  browser's normal lifecycle.
 - Run `npm run docs` for site changes so SEO and PWA validators inspect the final artifact.
 
 ## Style Notes
