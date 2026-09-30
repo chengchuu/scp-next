@@ -9,12 +9,10 @@ permissions:
   packages: write
 
 on:
-  # Test
   pull_request:
     branches:
       - main
       - 'release/v*'
-  # Publish
   push:
     branches:
       - 'release/v*'

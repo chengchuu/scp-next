@@ -347,6 +347,4 @@ copy(options);
 作者: [除除](https://github.com/chengchuu)
 原文: <https://blog.mazey.net/6454.html>
 
-<!-- ID: introducing-scp-next-v1.0.19.zh-CN.md -->
-
-(完)
+<!-- ID: RELEASE_NOTES/introducing-scp-next-v1.0.19.zh-CN.md -->

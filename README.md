@@ -1,3 +1,5 @@
+<img src="https://chengchuu.github.io/scp-next/images/scp-next-logo-512x512.png" width="96" height="96" alt="scp-next logo" />
+
 # scp-next
 
 [![npm version][npm-image]][npm-url]

@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import {
   cpSync,
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
@@ -10,7 +9,6 @@ import {
 } from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import zlib from "node:zlib";
 
 import projectConfig from "../project.config.js";
 
@@ -114,7 +112,8 @@ export function transformApiHtml(html, relativeFile) {
     seoStart,
     `<meta name="description" content="${escapeAttribute(description)}">`,
     `<link rel="canonical" href="${url}">`,
-    `<link rel="icon" href="${projectConfig.assets.faviconUrl}" type="image/svg+xml">`,
+    `<link rel="icon" href="${projectConfig.assets.faviconUrl}" type="${projectConfig.assets.faviconType}" sizes="${projectConfig.assets.faviconSizes}">`,
+    `<link rel="apple-touch-icon" href="${projectConfig.assets.appleTouchIconUrl}" sizes="${projectConfig.assets.appleTouchIconSizes}">`,
     `<link rel="manifest" href="${projectConfig.pwa.manifestUrl}">`,
     `<meta name="theme-color" content="${theme.colorPrimary}" data-theme-color data-theme-color-light="${theme.colorLight}" data-theme-color-dark="${theme.colorDark}">`,
     `<style>:root{--project-theme-primary:${theme.colorPrimary};--project-theme-primary-hover:${theme.primary.light.hover};--project-theme-primary-active:${theme.primary.light.active};--project-theme-primary-soft:${theme.primary.light.soft};--project-theme-primary-rgb:${theme.primary.light.rgb};--project-theme-primary-hover-rgb:${theme.primary.light.hoverRgb};--project-theme-primary-dark:${theme.primary.dark.base};--project-theme-primary-dark-hover:${theme.primary.dark.hover};--project-theme-primary-dark-active:${theme.primary.dark.active};--project-theme-primary-dark-soft:${theme.primary.dark.soft};--project-theme-primary-dark-rgb:${theme.primary.dark.rgb};--project-theme-primary-dark-hover-rgb:${theme.primary.dark.hoverRgb};--project-theme-light:${theme.colorLight};--project-theme-dark:${theme.colorDark}}</style>`,
@@ -147,8 +146,15 @@ export function transformApiHtml(html, relativeFile) {
     .replace(/<meta name="description"[^>]*>/i, "")
     .replace(/<link rel="canonical"[^>]*>/i, "")
     .replace(/<link rel="icon"[^>]*>/i, "")
+    .replace(/<link rel="apple-touch-icon"[^>]*>/gi, "")
     .replace(/<html\b(?![^>]*data-bs-theme)/i, '<html data-bs-theme="light"')
     .replace("</head>", `${metadata}</head>`);
+
+  // Use bundled branding in TypeDoc while the npm README keeps hosted URLs.
+  for (const icon of projectConfig.pwa.icons) {
+    const hostedUrl = new URL(icon.src, projectConfig.site.url).href;
+    output = output.replaceAll(`src="${hostedUrl}"`, `src="${icon.src}"`);
+  }
 
   const toolbarPattern = /(<div class="tsd-toolbar-contents container"[^>]*>)/i;
   if (!toolbarPattern.test(output)) {
@@ -157,109 +163,6 @@ export function transformApiHtml(html, relativeFile) {
   const links = `<nav class="site-project-links" aria-label="Project links"><a href="${pages.home.url}">Project home</a><a href="${pages.api.url}">API overview</a><a href="${projectConfig.urls.github}">GitHub</a><a href="${projectConfig.urls.npm}">npm package</a><span class="site-pwa-status" role="status" aria-live="polite" data-pwa-status></span><label class="theme-control"><span>Theme</span><select data-theme-select aria-label="Choose API documentation theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></nav>`;
   output = output.replace(toolbarPattern, `$1${links}`);
   return ensureOneH1(output, title);
-}
-
-function crc32(buffer) {
-  let crc = 0xffffffff;
-  for (const byte of buffer) {
-    crc ^= byte;
-    for (let bit = 0; bit < 8; bit += 1) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function pngChunk(type, data) {
-  const typeBuffer = Buffer.from(type);
-  const output = Buffer.alloc(data.length + 12);
-  output.writeUInt32BE(data.length, 0);
-  typeBuffer.copy(output, 4);
-  data.copy(output, 8);
-  output.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), data.length + 8);
-  return output;
-}
-
-function generatePng(width, height, painter) {
-  const rowSize = width * 4 + 1;
-  const raw = Buffer.alloc(rowSize * height);
-  for (let y = 0; y < height; y += 1) {
-    raw[y * rowSize] = 0;
-    for (let x = 0; x < width; x += 1) {
-      const [red, green, blue, alpha = 255] = painter(x, y, width, height);
-      const offset = y * rowSize + 1 + x * 4;
-      raw[offset] = red;
-      raw[offset + 1] = green;
-      raw[offset + 2] = blue;
-      raw[offset + 3] = alpha;
-    }
-  }
-  const header = Buffer.alloc(13);
-  header.writeUInt32BE(width, 0);
-  header.writeUInt32BE(height, 4);
-  header[8] = 8;
-  header[9] = 6;
-  return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    pngChunk("IHDR", header),
-    pngChunk("IDAT", zlib.deflateSync(raw, { level: 9 })),
-    pngChunk("IEND", Buffer.alloc(0))
-  ]);
-}
-
-function logoPixel(x, y, width, height, maskable) {
-  const nx = x / width;
-  const ny = y / height;
-  const safe = maskable ? 0.1 : 0;
-  if (nx < safe || ny < safe || nx > 1 - safe || ny > 1 - safe) {
-    return [246, 248, 245, 255];
-  }
-  const line = 0.035;
-  const upperHorizontal = ny > 0.32 - line && ny < 0.32 + line && nx > 0.23 && nx < 0.72;
-  const lowerHorizontal = ny > 0.68 - line && ny < 0.68 + line && nx > 0.28 && nx < 0.77;
-  const upperArrow =
-    nx > 0.59 && nx < 0.75 && Math.abs(Math.abs(ny - 0.32) - (0.72 - nx)) < line;
-  const lowerArrow =
-    nx > 0.25 && nx < 0.41 && Math.abs(Math.abs(ny - 0.68) - (nx - 0.28)) < line;
-  if (upperHorizontal || lowerHorizontal || upperArrow || lowerArrow) {
-    return [255, 255, 255, 255];
-  }
-  return [23, 107, 73, 255];
-}
-
-function writeGeneratedImages(docs) {
-  const images = path.join(docs, "images");
-  mkdirSync(images, { recursive: true });
-  for (const [file, size, maskable] of [
-    ["icon-192.png", 192, false],
-    ["icon-512.png", 512, false],
-    ["icon-maskable-512.png", 512, true]
-  ]) {
-    writeFileSync(
-      path.join(images, file),
-      generatePng(size, size, (x, y, width, height) =>
-        logoPixel(x, y, width, height, maskable)
-      )
-    );
-  }
-  writeFileSync(
-    path.join(images, projectConfig.seo.openGraphImage.file),
-    generatePng(1200, 630, (x, y, width, height) => {
-      const nx = x / width;
-      const ny = y / height;
-      if (ny > 0.8) return [13, 23, 18, 255];
-      if (nx > 0.22 && nx < 0.78 && ny > 0.08 && ny < 0.92) {
-        return logoPixel(
-          x - width * 0.22,
-          y - height * 0.08,
-          width * 0.56,
-          height * 0.84,
-          false
-        );
-      }
-      return [23, 107, 73, 255];
-    })
-  );
 }
 
 function contentFingerprint(docs) {
@@ -298,7 +201,15 @@ export function buildPages({ rootDir = defaultRoot } = {}) {
     dist,
     typedoc,
     workerSource,
-    path.join(rootDir, "images", projectConfig.assets.logoFile),
+    ...[
+      ...new Set([
+        projectConfig.assets.logoFile,
+        projectConfig.assets.faviconFile,
+        projectConfig.assets.appleTouchIconFile,
+        projectConfig.assets.openGraphImageFile,
+        ...projectConfig.pwa.icons.map((icon) => icon.file)
+      ])
+    ].map((file) => path.join(dist, "images", file)),
     path.join(dist, "index.html"),
     path.join(dist, "examples", "index.html"),
     path.join(dist, "assets", "api.css"),
@@ -312,7 +223,6 @@ export function buildPages({ rootDir = defaultRoot } = {}) {
   rmSync(docs, { recursive: true, force: true });
   cpSync(dist, docs, { recursive: true });
   cpSync(typedoc, path.join(docs, "api"), { recursive: true });
-  writeGeneratedImages(docs);
 
   const api = path.join(docs, "api");
   rmSync(path.join(api, "sitemap.xml"), { force: true });
@@ -363,6 +273,8 @@ export function buildPages({ rootDir = defaultRoot } = {}) {
     `${projectConfig.site.basePath}assets/api.css`,
     `${projectConfig.site.basePath}assets/api.js`,
     `${projectConfig.site.basePath}images/${projectConfig.assets.logoFile}`,
+    projectConfig.assets.faviconUrl,
+    projectConfig.assets.appleTouchIconUrl,
     ...projectConfig.pwa.icons.map((icon) => icon.src),
     ...apiAssets
   ];

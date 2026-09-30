@@ -6,7 +6,17 @@
     <title><%= ROOT_TITLE %></title>
     <meta name="description" content="<%= ROOT_DESCRIPTION %>" />
     <link rel="canonical" href="<%= SITE_URL %>" />
-    <link rel="icon" href="<%= FAVICON_URL %>" type="image/svg+xml" />
+    <link
+      rel="icon"
+      href="<%= FAVICON_URL %>"
+      type="<%= FAVICON_TYPE %>"
+      sizes="<%= FAVICON_SIZES %>"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="<%= APPLE_TOUCH_ICON_URL %>"
+      sizes="<%= APPLE_TOUCH_ICON_SIZES %>"
+    />
     <% if (MANIFEST_URL) { %>
     <link rel="manifest" href="<%= MANIFEST_URL %>" />
     <% } %>
