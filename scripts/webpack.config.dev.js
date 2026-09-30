@@ -141,6 +141,8 @@ export default {
     }),
     new HtmlWebpackPlugin({
       filename: "index.html",
+      // SEO and PWA checks rely on the source HTML attribute formatting.
+      minify: false,
       template: resolve("../site/index.html"),
       chunks: ["shared", "home"],
       inject: "body",
@@ -148,6 +150,7 @@ export default {
     }),
     new HtmlWebpackPlugin({
       filename: "examples/index.html",
+      minify: false,
       template: resolve("../site/examples/index.html"),
       chunks: ["shared", "examples"],
       inject: "body",

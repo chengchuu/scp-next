@@ -10,15 +10,67 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { describe, expect, it } from "vitest";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import webpack from "webpack";
 
 import projectConfig from "../project.config.js";
 import { apiPageUrl, buildPages, transformApiHtml } from "../scripts/build-pages.js";
+import webpackConfig from "../scripts/webpack.config.dev.js";
 
 const typedocHtml = `<!doctype html>
 <html><head><title>scp-next</title></head>
 <body><header><div class="tsd-toolbar-contents container"></div></header>
 <main><div class="tsd-page-title"><h2>scp-next</h2></div>
 <h1>README</h1></main></body></html>`;
+
+describe("production HTML generation", () => {
+  it("preserves metadata formatting required by SEO and PWA validators", async () => {
+    const output = mkdtempSync(path.join(os.tmpdir(), "scp-next-html-"));
+    const pages = webpackConfig.plugins.filter(
+      (plugin) => plugin instanceof HtmlWebpackPlugin
+    );
+    const compiler = webpack({
+      mode: "production",
+      entry: {},
+      output: { path: output },
+      plugins: pages.map((plugin) => {
+        expect(plugin.userOptions.minify).toBe(false);
+        return new HtmlWebpackPlugin({
+          ...plugin.userOptions,
+          templateParameters: {
+            ...plugin.userOptions.templateParameters,
+            MANIFEST_URL: projectConfig.pwa.manifestUrl
+          }
+        });
+      })
+    });
+    try {
+      await new Promise((resolve, reject) => {
+        compiler.run((error, stats) => {
+          if (error) reject(error);
+          else if (stats.hasErrors()) reject(new Error(stats.toString()));
+          else resolve();
+        });
+      });
+      for (const page of ["index.html", "examples/index.html"]) {
+        const html = readFileSync(path.join(output, page), "utf8");
+        expect(html).toMatch(/<meta name="description" content="[^"]+"/);
+        expect(html).toContain('<link rel="canonical" href="https://');
+        expect(html).toContain('property="og:url" content="https://');
+        expect(html).toContain('name="twitter:card"');
+        expect(html).toContain('type="application/ld+json"');
+        expect(html).toContain('rel="icon"');
+        expect(html).toContain(`href="${projectConfig.pwa.manifestUrl}"`);
+        expect(html).toContain('name="theme-color"');
+      }
+    } finally {
+      await new Promise((resolve, reject) => {
+        compiler.close((error) => (error ? reject(error) : resolve()));
+      });
+      rmSync(output, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("website project configuration", () => {
   it("keeps stable routes and PWA scope below the Pages base", () => {
