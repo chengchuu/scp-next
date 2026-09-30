@@ -1,149 +1,71 @@
-/* eslint-disable @typescript-eslint/no-var-requires, no-undef */
-import { babel } from "@rollup/plugin-babel";
-import commonjs from "@rollup/plugin-commonjs";
-import rollupTypescript from "rollup-plugin-typescript2";
-import { DEFAULT_EXTENSIONS } from "@babel/core";
-import cleaner from "rollup-plugin-cleaner";
-import terser from "@rollup/plugin-terser";
+import { builtinModules } from "node:module";
+import { rmSync } from "node:fs";
+
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import typescript from "@rollup/plugin-typescript";
 import { dts } from "rollup-plugin-dts";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+
 import pkg from "../package.json" with { type: "json" };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const _resolve = (_path) => path.resolve(__dirname, _path);
-const pkgName = pkg.name;
-const iifeName = pkgName.replace(/-/g, "_").toUpperCase();
-const pkgVersion = process.env.SCRIPTS_NPM_PACKAGE_VERSION || process.env.VERSION || "unknown";
-const debugMode = process.env.SCRIPTS_NPM_PACKAGE_DEBUG;
-const inputResolve = _resolve("../src/index.ts");
-const banner =
-  "/*!\n" +
-  ` * ${pkgName} v${pkgVersion}\n` +
-  ` * (c) 2018-${new Date().getFullYear()} Cheng https://www.npmjs.com/package/scp-next\n` +
-  " * Released under the MIT License.\n" +
-  " */";
-const external = [ "mazey" ];
-
-const plugins = [
-  rollupTypescript(),
-  commonjs({
-    include: /node_modules/,
-  }),
-  babel({
-    babelHelpers: "runtime",
-    // Just convert the source code, don't run external dependencies.
-    exclude: "**/node_modules/**",
-    // Babel does not support TypeScript by default; it needs to be manually added.
-    extensions: [
-      ...DEFAULT_EXTENSIONS,
-      ".ts",
-    ],
-  }),
-];
-const iifePlugins = [];
-const typingDtsConf = {
-  input: _resolve("../src/typing.d.ts"),
-  // https://rollupjs.org/guide/en/#outputformat
-  output: [
-    {
-      file: _resolve("../lib/typing.d.ts"),
-      format: "es",
-    },
-  ],
-  plugins: [
-    dts(),
-  ],
-  external,
-};
-const indexDtsConf = {
-  input: _resolve("../src/index.ts"),
-  output: [
-    {
-      file: _resolve("../lib/index.d.ts"),
-      format: "es",
-    },
-  ],
-  plugins: [
-    dts(),
-  ],
-  external: [],
-};
-const globalDtsConf = {
-  input: _resolve("../types/global.d.ts"),
-  output: [
-    {
-      file: _resolve("../lib/global.d.ts"),
-      format: "es",
-    },
-  ],
-  plugins: [
-    dts(),
-  ],
-  external,
-};
-
-if (debugMode !== "open") {
-  iifePlugins.push(
-    // Add minification.
-    // https://github.com/TrySound/rollup-plugin-terser
-    terser({
-      format: {
-        // https://github.com/terser/terser#format-options
-        comments: /^!\n\s\*\sscp-next/, // `'some'`/`false` to omit comments in the output
-      },
-    }),
+const dependencies = new Set([
+  ...Object.keys(pkg.dependencies ?? {}),
+  ...builtinModules,
+  ...builtinModules.map((name) => `node:${name}`)
+]);
+const external = (id) =>
+  [...dependencies].some(
+    (dependency) => id === dependency || id.startsWith(`${dependency}/`)
   );
-}
+const sourcePlugin = () =>
+  typescript({
+    tsconfig: "./tsconfig.json",
+    declaration: false,
+    declarationMap: false,
+    noEmit: false,
+    sourceMap: true
+  });
+const cleanDist = {
+  name: "clean-dist",
+  buildStart() {
+    rmSync("dist", { recursive: true, force: true });
+  }
+};
 
-// https://rollupjs.org/guide/en/
 export default [
   {
-    input: inputResolve,
-    // https://rollupjs.org/guide/en/#outputformat
-    output: [
-      {
-        file: _resolve("../lib/index.cjs.js"),
-        format: "cjs",
-        banner,
-        plugins: iifePlugins,
-      },
-      {
-        file: _resolve("../lib/index.esm.js"),
-        format: "esm",
-        banner,
-        plugins: iifePlugins,
-      },
-    ],
-    plugins: [
-      ...plugins,
-      cleaner({
-        targets: [
-          _resolve("../lib/*"),
-        ],
-      }),
-    ],
+    input: "src/index.ts",
     external,
+    plugins: [
+      cleanDist,
+      nodeResolve({ extensions: [".mjs", ".js", ".json", ".ts"] }),
+      sourcePlugin()
+    ],
+    output: [
+      { file: "dist/index.js", format: "esm", sourcemap: true },
+      { file: "dist/index.cjs", format: "cjs", exports: "named", sourcemap: true }
+    ]
   },
   {
-    input: inputResolve,
-    output: [
-      {
-        file: _resolve(`../lib/${pkgName}.min.js`),
-        format: "iife",
-        name: iifeName,
-        banner,
-        plugins: iifePlugins,
-      },
-    ],
-    plugins: [
-      ...plugins,
-    ],
+    input: "src/cli/index.ts",
     external,
+    plugins: [
+      nodeResolve({ extensions: [".mjs", ".js", ".json", ".ts"] }),
+      sourcePlugin()
+    ],
+    output: {
+      file: "dist/cli/index.js",
+      format: "esm",
+      sourcemap: true,
+      banner: "#!/usr/bin/env node"
+    }
   },
-  indexDtsConf,
-  typingDtsConf,
-  globalDtsConf,
+  {
+    input: "src/index.ts",
+    external,
+    plugins: [dts({ tsconfig: "./tsconfig.json" })],
+    output: [
+      { file: "dist/index.d.ts", format: "esm" },
+      { file: "dist/index.d.cts", format: "esm" }
+    ]
+  }
 ];

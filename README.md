@@ -7,7 +7,7 @@
 [![docs][docs-image]][docs-url]
 
 [npm-image]: https://img.shields.io/npm/v/scp-next
-[npm-url]: https://npmjs.org/package/scp-next
+[npm-url]: https://www.npmjs.com/package/scp-next
 [license-image]: https://img.shields.io/npm/l/scp-next
 [license-url]: https://github.com/chengchuu/scp-next
 [node-image]: https://img.shields.io/node/v/scp-next
@@ -15,18 +15,12 @@
 [docs-image]: https://img.shields.io/badge/docs-GitHub%20Pages-2b6cb0
 [docs-url]: https://chengchuu.github.io/scp-next/
 
-`scp-next` is an SCP-style command-line tool and library for secure file transfers over SSH.
-It uses SFTP internally through `ssh2-sftp-client` instead of implementing SCP or SFTP protocols manually.
-Developer documentation is available at [GitHub Pages](https://chengchuu.github.io/scp-next/).
+`scp-next` is an SCP-style CLI and library for secure SSH file transfers. It uses SFTP through
+`ssh2-sftp-client` rather than implementing SCP or SFTP directly.
 
-## Features
-
-- Upload and download files or directories recursively.
-- CLI usage with clear `<source> <destination>` operands.
-- ESM `import` and CommonJS `require` support.
-- JSON configuration files, named profiles, and configured jobs.
-- Reusable transfer client.
-- Optional sequential remote commands after a successful upload.
+Read the [documentation](https://chengchuu.github.io/scp-next/), generate CLI snippets with the
+[interactive examples](https://chengchuu.github.io/scp-next/examples/), or browse the
+[API documentation](https://chengchuu.github.io/scp-next/api/).
 
 ## Contents
 
@@ -83,7 +77,7 @@ Downloading: /var/log/example.log 1.0 MB / 1.0 MB (100%)
 ```
 
 Password arguments are convenient, but they may be exposed through shell history and process listings.
-Prefer `SCP_NEXT_PASSWORD` environment variable in shared or production environments. For key authentication, use a protected private-key file.
+Prefer the `SCP_NEXT_PASSWORD` environment variable in shared or production environments. For key authentication, use a protected private-key file.
 
 Use the library:
 
@@ -119,7 +113,9 @@ CLI commands use `<source> <destination>`. Programmatic upload and download APIs
 | Upload    | Local  | Remote      |
 | Download  | Remote | Local       |
 
-Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or ends with a path separator, `scp-next` places the source inside that directory using the source basename. Missing destination directories are created by default.
+Destination paths follow familiar `cp`/`scp` behavior. If the destination exists as a directory or
+ends with a path separator, `scp-next` places the source inside that directory using the source
+basename. Missing destination directories are created by default.
 
 ### Upload Examples
 
@@ -159,7 +155,7 @@ scp-next upload ./dist /var/www/example \
 
 `--post-upload-command` is repeatable and upload-only. Commands run sequentially on the
 remote server with the SSH user's permissions. The first non-zero exit code stops the sequence
-and makes the CLI exit non-zero. A missing exit status is also treated as failure.
+and causes the CLI to exit with a nonzero status. A missing exit status is also treated as failure.
 
 Use an encrypted private key:
 
@@ -218,7 +214,7 @@ scp-next run download-logs --config ./scp-next.config.json
 | `--create-directories`                | Create missing destination directories. Enabled by default.            |
 | `--no-create-directories`             | Disable automatic destination directory creation.                      |
 | `--dry-run`                           | Resolve and validate the operation without connecting or transferring. |
-| `--post-upload-command <command>`     | Run a remote command after a successful upload. Repeatable.             |
+| `--post-upload-command <command>`     | Run a remote command after a successful upload. Repeatable.            |
 | `--timeout <milliseconds>`            | SSH connection ready timeout in milliseconds.                          |
 | `--verbose`                           | Print non-sensitive diagnostic details.                                |
 | `--quiet`                             | Disable progress and non-error output.                                 |
@@ -316,30 +312,30 @@ await upload({
 
 ### Library Options
 
-| Field               | Used by         | Description                                                  |
-| ------------------- | --------------- | ------------------------------------------------------------ |
-| `host`              | server          | SSH server host.                                             |
-| `port`              | server          | SSH server port. Defaults to `22`.                           |
-| `username`          | server          | SSH username.                                                |
-| `password`          | server          | SSH password.                                                |
-| `privateKey`        | server          | Private-key content as a string or Buffer.                   |
-| `privateKeyFile`    | server          | Private-key file path.                                       |
-| `passphrase`        | server          | Passphrase for an encrypted private key.                     |
-| `agent`             | server          | SSH agent socket path.                                       |
-| `hostFingerprint`   | server          | Expected server host-key SHA-256 fingerprint.                |
-| `knownHostsFile`    | server          | Known-hosts file for host verification.                      |
-| `localPath`         | upload/download | Local source for upload or local destination for download.   |
-| `remotePath`        | upload/download | Remote destination for upload or remote source for download. |
-| `recursive`         | transfer        | Transfer directories recursively. Defaults to `false`.       |
-| `overwrite`         | transfer        | Allow replacing existing files.                              |
-| `createDirectories` | transfer        | Create missing destination directories. Defaults to `true`.  |
-| `dryRun`            | transfer        | Validate and plan without modifying local or remote files.   |
-| `timeout`           | server/transfer | SSH connection ready timeout in milliseconds.                |
-| `postUploadCommands` | upload         | Remote command strings run sequentially after success.       |
-| `onProgress`        | transfer        | Progress callback for file and directory transfers.          |
+| Field                | Used by         | Description                                                  |
+| -------------------- | --------------- | ------------------------------------------------------------ |
+| `host`               | server          | SSH server host.                                             |
+| `port`               | server          | SSH server port. Defaults to `22`.                           |
+| `username`           | server          | SSH username.                                                |
+| `password`           | server          | SSH password.                                                |
+| `privateKey`         | server          | Private-key content as a string or a `Buffer`.               |
+| `privateKeyFile`     | server          | Private-key file path.                                       |
+| `passphrase`         | server          | Passphrase for an encrypted private key.                     |
+| `agent`              | server          | SSH agent socket path.                                       |
+| `hostFingerprint`    | server          | Expected server host-key SHA-256 fingerprint.                |
+| `knownHostsFile`     | server          | Known-hosts file for host verification.                      |
+| `localPath`          | upload/download | Local source for upload or local destination for download.   |
+| `remotePath`         | upload/download | Remote destination for upload or remote source for download. |
+| `recursive`          | transfer        | Transfer directories recursively. Defaults to `false`.       |
+| `overwrite`          | transfer        | Allow replacing existing files.                              |
+| `createDirectories`  | transfer        | Create missing destination directories. Defaults to `true`.  |
+| `dryRun`             | transfer        | Validate and plan without modifying local or remote files.   |
+| `timeout`            | server/transfer | SSH connection ready timeout in milliseconds.                |
+| `postUploadCommands` | upload          | Remote command strings run sequentially after success.       |
+| `onProgress`         | transfer        | Progress callback for file and directory transfers.          |
 
 `client.exec(command, options)` returns `ExecResult` with `stdout`, `stderr`, `exitCode`,
-and an optional signal. Its optional `timeout` is command-specific; `failOnStderr` can treat
+and an optional `signal`. Its optional `timeout` is command-specific; `failOnStderr` can treat
 stderr output as failure even when the exit code is zero. `maxBuffer` limits combined captured
 output and defaults to 10 MiB. A timeout closes the SSH channel; whether the remote process is
 terminated depends on the SSH server.
@@ -348,7 +344,8 @@ terminated depends on the SSH server.
 
 ### Configuration Files
 
-Use `scp-next.config.json` in the current directory. `scp-next` also auto-detects these rc-style filenames: `.scp-nextrc`, `.scp-nextrc.json`.
+Use `scp-next.config.json` in the current directory. `scp-next` also auto-detects these rc-style
+filenames: `.scp-nextrc` and `.scp-nextrc.json`.
 
 ```text
 scp-next.config.json
@@ -639,8 +636,8 @@ assignment forms from CLI logs and errors.
 
 ## User Guides
 
-- [English](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-en.md)
-- [简体中文](https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-zh.md)
+- [English](https://github.com/chengchuu/scp-next/blob/main/guides/RELEASE_NOTES/introducing-scp-next-v1.0.19.en-US.md)
+- [简体中文](https://github.com/chengchuu/scp-next/blob/main/guides/RELEASE_NOTES/introducing-scp-next-v1.0.19.zh-CN.md)
 
 ## Development
 
@@ -651,7 +648,7 @@ npm run lint
 npm test
 npm run build
 npm run docs:links
-npm run docs:build
+npm run docs
 npm pack --dry-run
 ```
 
@@ -660,8 +657,9 @@ npm pack --dry-run
 ## Publishing
 
 The published package includes `dist`, README, license, changelog, and handwritten guides. The CLI
-entry is `dist/cli/index.js` and contains a Node.js shebang. `npm run docs:build` generates the
-GitHub Pages artifact under `docs/`; do not edit or commit that output directly.
+entry is `dist/cli/index.js` and contains a Node.js shebang. `npm run docs` generates TypeDoc,
+builds the website and examples with Webpack, assembles the GitHub Pages artifact under `docs/`,
+and validates its SEO and PWA metadata. Do not edit or commit generated output directly.
 
 ## Transfer Mechanism
 

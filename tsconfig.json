@@ -28,5 +28,19 @@
     "vitest.config.ts",
     "eslint.config.js"
   ],
-  "exclude": ["dist", "coverage", "node_modules"]
+  "exclude": [
+    ".pages-api",
+    "coverage",
+    "dist",
+    "dist-dev",
+    "docs",
+    "node_modules",
+    "site"
+  ],
+  "typedocOptions": {
+    "entryPoints": ["./src/index.ts"],
+    "hostedBaseUrl": "https://chengchuu.github.io/scp-next/api/",
+    "intentionallyNotExported": ["ScpNextClientDependencies"],
+    "highlightLanguages": ["bash", "javascript", "json", "powershell", "typescript"]
+  }
 }

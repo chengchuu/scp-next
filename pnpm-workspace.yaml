@@ -1,0 +1,4 @@
+allowBuilds:
+  cpu-features: false
+  esbuild: false
+  ssh2: false

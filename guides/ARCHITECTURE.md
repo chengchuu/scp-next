@@ -20,8 +20,24 @@
 - `commander`: small CLI parser with solid help/version support.
 - `mazey`: shared utilities for defined-value assignment and byte-size formatting.
 - `zod`: validates configuration file shape without exposing schema objects in the public API.
-- `tsup`: emits ESM, CommonJS, declarations, and source maps with minimal packaging overhead.
+- `rollup`: emits ESM, CommonJS, declarations, the CLI entry, and source maps while keeping
+  runtime dependencies external.
+- `webpack`: builds only the public website and interactive example generator.
+- `typedoc`: generates API documentation before the deterministic Pages assembly step.
+- `bootstrap`: provides the website layout and color-mode foundation as a development dependency.
 - `vitest`: fast TypeScript-friendly unit and integration tests.
+
+## Website Build Boundary
+
+`project.config.js` derives package identity, repository URLs, GitHub Pages routes, SEO metadata,
+theme colors, and PWA settings from package metadata. Webpack injects only a browser-safe runtime
+subset into `site/`; package source under `src/` never imports website configuration.
+
+Rollup remains the sole npm package bundler. Webpack emits the homepage and `/examples/` route to
+`dist-dev/`, TypeDoc emits API HTML to `.pages-api/`, and `scripts/build-pages.js` assembles both
+into `docs/`. The assembly step also transforms TypeDoc HTML and generates crawler, manifest,
+icon, and service-worker files. These output directories are generated and must not be edited by
+hand.
 
 ## Transfer Terminology
 

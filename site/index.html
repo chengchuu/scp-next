@@ -1,370 +1,283 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>scp-next Developer Documentation</title>
+    <title><%= ROOT_TITLE %></title>
+    <meta name="description" content="<%= ROOT_DESCRIPTION %>" />
+    <link rel="canonical" href="<%= SITE_URL %>" />
+    <link rel="icon" href="<%= FAVICON_URL %>" type="image/svg+xml" />
+    <% if (MANIFEST_URL) { %>
+    <link rel="manifest" href="<%= MANIFEST_URL %>" />
+    <% } %>
     <meta
-      name="description"
-      content="Developer documentation for scp-next, a secure SCP-style CLI and TypeScript library for SSH file transfers using SFTP."
+      name="theme-color"
+      content="<%= THEME_COLOR_PRIMARY %>"
+      data-theme-color
+      data-theme-color-light="<%= THEME_COLOR_LIGHT %>"
+      data-theme-color-dark="<%= THEME_COLOR_DARK %>"
     />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2316351f'/%3E%3Cpath d='M18 22h28M18 32h18M18 42h28' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E"
-    />
-    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      :root {
+        --project-theme-primary: <%= THEME_COLOR_PRIMARY %>;
+        --project-theme-primary-hover: <%= THEME_PRIMARY_HOVER %>;
+        --project-theme-primary-active: <%= THEME_PRIMARY_ACTIVE %>;
+        --project-theme-primary-soft: <%= THEME_PRIMARY_SOFT %>;
+        --project-theme-primary-rgb: <%= THEME_PRIMARY_RGB %>;
+        --project-theme-primary-hover-rgb: <%= THEME_PRIMARY_HOVER_RGB %>;
+        --project-theme-primary-dark: <%= THEME_PRIMARY_DARK %>;
+        --project-theme-primary-dark-hover: <%= THEME_PRIMARY_DARK_HOVER %>;
+        --project-theme-primary-dark-active: <%= THEME_PRIMARY_DARK_ACTIVE %>;
+        --project-theme-primary-dark-soft: <%= THEME_PRIMARY_DARK_SOFT %>;
+        --project-theme-primary-dark-rgb: <%= THEME_PRIMARY_DARK_RGB %>;
+        --project-theme-primary-dark-hover-rgb: <%= THEME_PRIMARY_DARK_HOVER_RGB %>;
+        --project-theme-light: <%= THEME_COLOR_LIGHT %>;
+        --project-theme-dark: <%= THEME_COLOR_DARK %>;
+      }
+    </style>
+    <script>
+      (() => {
+        try {
+          const preference = localStorage.getItem("<%= THEME_STORAGE_KEY %>");
+          const theme =
+            preference === "light" || preference === "dark"
+              ? preference
+              : matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.dataset.bsTheme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch {}
+      })();
+    </script>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="<%= DISPLAY_NAME %>" />
+    <meta property="og:title" content="<%= ROOT_TITLE %>" />
+    <meta property="og:description" content="<%= ROOT_DESCRIPTION %>" />
+    <meta property="og:url" content="<%= SITE_URL %>" />
+    <meta property="og:image" content="<%= OPEN_GRAPH_IMAGE_URL %>" />
+    <meta property="og:image:type" content="<%= OPEN_GRAPH_IMAGE_TYPE %>" />
+    <meta property="og:image:width" content="<%= OPEN_GRAPH_IMAGE_WIDTH %>" />
+    <meta property="og:image:height" content="<%= OPEN_GRAPH_IMAGE_HEIGHT %>" />
+    <meta property="og:image:alt" content="<%= OPEN_GRAPH_IMAGE_ALT %>" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="<%= ROOT_TITLE %>" />
+    <meta name="twitter:description" content="<%= ROOT_DESCRIPTION %>" />
+    <meta name="twitter:image" content="<%= OPEN_GRAPH_IMAGE_URL %>" />
+    <meta name="twitter:image:alt" content="<%= OPEN_GRAPH_IMAGE_ALT %>" />
+    <script type="application/ld+json">
+      <%= ROOT_JSON_LD %>
+    </script>
   </head>
-  <body>
-    <div class="site-shell">
-      <aside class="sidebar">
-        <a class="brand" href="#top" aria-label="scp-next documentation home">
-          <span class="brand-mark">scp</span>
-          <span>
-            <span class="brand-title">scp-next</span>
-            <span class="brand-subtitle">Developer docs</span>
-          </span>
-        </a>
-
-        <nav aria-label="Documentation">
-          <p class="nav-label">Start</p>
-          <a class="nav-link" href="#features">Features</a>
-          <a class="nav-link" href="#install">Install</a>
-          <a class="nav-link" href="#quick-start">Quick Start</a>
-          <a class="nav-link" href="#cli-usage">CLI Usage</a>
-          <a class="nav-link" href="#library">Library API</a>
-
-          <p class="nav-label">Operate</p>
-          <a class="nav-link" href="#advanced-usage">Advanced Usage</a>
-          <a class="nav-link" href="#user-guides">User Guides</a>
-          <a class="nav-link" href="#security">Security</a>
-          <a class="nav-link" href="#architecture">Architecture</a>
-        </nav>
-
-        <div class="sidebar-actions">
-          <a class="button" href="https://www.npmjs.com/package/scp-next">npm package</a>
-          <a class="button secondary" href="https://github.com/chengchuu/scp-next"
-            >GitHub</a
+  <body id="top">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <nav
+        class="navbar navbar-expand-xl site-navbar"
+        aria-label="Primary navigation"
+        data-site-navbar
+      >
+        <div class="container">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="./">
+            <img class="brand-logo" src="<%= LOGO_URL %>" width="32" height="32" alt="" />
+            <span><%= DISPLAY_NAME %></span>
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            aria-controls="primary-navigation"
+            aria-expanded="false"
+            aria-label="Toggle project navigation"
+            data-nav-toggle
           >
+            <span class="navbar-toggler-icon" aria-hidden="true"></span>
+          </button>
+          <div id="primary-navigation" class="navbar-collapse" data-mobile-nav>
+            <ul class="navbar-nav ms-auto align-items-xl-center gap-xl-1">
+              <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="./">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="./examples/">Examples</a>
+              </li>
+              <li class="nav-item"><a class="nav-link" href="#install">Install</a></li>
+              <li class="nav-item"><a class="nav-link" href="#usage">Usage</a></li>
+              <li class="nav-item"><a class="nav-link" href="./api/">API</a></li>
+              <li class="nav-item">
+                <a class="nav-link" href="<%= GITHUB_URL %>">GitHub</a>
+              </li>
+              <li class="nav-item"><a class="nav-link" href="<%= NPM_URL %>">npm</a></li>
+            </ul>
+            <label class="theme-control ms-xl-3">
+              <span>Theme</span>
+              <select
+                class="form-select form-select-sm w-auto"
+                data-theme-select
+                aria-label="Choose website theme"
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </div>
         </div>
-      </aside>
+      </nav>
+    </header>
 
-      <main id="top" class="content">
-        <section class="hero" aria-labelledby="page-title">
-          <div>
-            <p class="eyebrow">Secure SSH file transfers for Node.js</p>
-            <h1 id="page-title">SCP-style commands with SFTP safety and a typed API.</h1>
-            <p class="lead">
-              `scp-next` uploads and downloads files or directories from a CLI, ESM
-              import, or CommonJS require. It uses SFTP internally, keeps local and remote
-              path terminology explicit, and redacts credentials from logs and errors.
+    <main id="main-content">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="container">
+          <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+              <p class="text-uppercase fw-semibold text-muted-custom mb-2">
+                Secure SSH transfers for Node.js
+              </p>
+              <h1 id="page-title">SCP-style commands backed by SFTP and a typed API.</h1>
+              <p class="lead">
+                <code><%= PACKAGE_NAME %></code> uploads and downloads files or
+                directories from a CLI, ESM import, or CommonJS require. Local and remote
+                paths stay explicit, and sensitive values are redacted from logs and
+                errors.
+              </p>
+              <div class="hero-actions">
+                <a class="btn btn-primary btn-lg" href="#install">Install scp-next</a>
+                <a class="btn btn-outline-secondary btn-lg" href="./examples/"
+                  >Build an example</a
+                >
+                <a class="btn btn-outline-secondary btn-lg" href="./api/">Read the API</a>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <img
+                class="transfer-visual"
+                src="./images/transfer-flow.svg"
+                alt="Upload from a local path to a remote path and download in the opposite direction"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-band" aria-labelledby="features-title">
+        <div class="container">
+          <div class="section-heading">
+            <h2 id="features-title">Features</h2>
+            <p>
+              One package for command-line transfers and reusable TypeScript integrations.
             </p>
-            <div class="hero-actions">
-              <a class="button" href="#quick-start">Quick start</a>
-              <a class="button secondary" href="#library">Use the library</a>
-            </div>
           </div>
-          <figure class="hero-visual">
-            <img
-              src="./assets/transfer-flow.svg"
-              alt="Local and remote transfer flow over SSH SFTP"
-            />
-            <figcaption>
-              Upload sends local source paths to remote destinations; download reverses
-              it.
-            </figcaption>
-          </figure>
-        </section>
-
-        <section id="features" class="section" aria-labelledby="features-title">
-          <h2 id="features-title">Features</h2>
-          <div class="grid">
-            <div class="tile">
-              <h3>Files and directories</h3>
-              <p>Upload and download files or directories recursively.</p>
-            </div>
-            <div class="tile">
-              <h3>Clear CLI operands</h3>
-              <p>Use familiar <code>&lt;source&gt; &lt;destination&gt;</code> order.</p>
-            </div>
-            <div class="tile">
-              <h3>ESM and CommonJS</h3>
-              <p>Use the library through ESM <code>import</code> or CommonJS require.</p>
-            </div>
-            <div class="tile">
-              <h3>Reusable config</h3>
-              <p>Use JSON configuration files, named profiles, and configured jobs.</p>
-            </div>
-            <div class="tile">
-              <h3>Reusable client</h3>
-              <p>Create one client, run multiple transfers, then close it reliably.</p>
-            </div>
-            <div class="tile">
-              <h3>Post-upload commands</h3>
-              <p>Optionally run sequential remote commands after a successful upload.</p>
-            </div>
-            <div class="tile">
-              <h3>Security-conscious</h3>
-              <p>Use SFTP internally and redact credentials from logs and errors.</p>
-            </div>
+          <div class="row g-4">
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">1</span>
+                <h3>Files and directories</h3>
+                <p class="mb-0">
+                  Upload and download individual files or recursive directory trees.
+                </p>
+              </div>
+            </article>
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">2</span>
+                <h3>Typed configuration</h3>
+                <p class="mb-0">
+                  Use profiles, jobs, environment variables, and explicit precedence.
+                </p>
+              </div>
+            </article>
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">3</span>
+                <h3>Reusable clients</h3>
+                <p class="mb-0">
+                  Connect once, transfer multiple paths, run commands, and close reliably.
+                </p>
+              </div>
+            </article>
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">4</span>
+                <h3>ESM and CommonJS</h3>
+                <p class="mb-0">Consume the same public API through import or require.</p>
+              </div>
+            </article>
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">5</span>
+                <h3>Dry-run planning</h3>
+                <p class="mb-0">
+                  Resolve and validate CLI operations before connecting or transferring.
+                </p>
+              </div>
+            </article>
+            <article class="col-md-6 col-xl-4">
+              <div class="card feature-card p-4">
+                <span class="feature-marker" aria-hidden="true">6</span>
+                <h3>Host verification</h3>
+                <p class="mb-0">
+                  Verify host keys with fingerprints or known-hosts files when configured.
+                </p>
+              </div>
+            </article>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="install" class="section narrow" aria-labelledby="install-title">
-          <h2 id="install-title">Install</h2>
-          <div class="split">
-            <div>
-              <p class="code-label">CLI</p>
-              <pre><code>npm install --global scp-next
+      <section
+        id="install"
+        class="section-band section-band--muted"
+        aria-labelledby="install-title"
+      >
+        <div class="container">
+          <div class="section-heading">
+            <h2 id="install-title">Install</h2>
+            <p>Install globally for CLI use or add the package to a Node.js project.</p>
+          </div>
+          <div class="row g-4">
+            <div class="col-lg-6">
+              <h3 class="h5">CLI</h3>
+              <pre class="code-sample"><code>npm install --global <%= PACKAGE_NAME %>
 scp-next --help</code></pre>
             </div>
-            <div>
-              <p class="code-label">Library</p>
-              <pre><code>npm install scp-next</code></pre>
+            <div class="col-lg-6">
+              <h3 class="h5">Library</h3>
+              <div class="install-command">
+                <code><%= INSTALL_COMMAND %></code>
+                <button class="btn" type="button" data-copy-install>Copy</button>
+              </div>
+              <p
+                class="copy-status"
+                role="status"
+                aria-live="polite"
+                data-copy-status
+              ></p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="quick-start" class="section" aria-labelledby="quick-start-title">
-          <h2 id="quick-start-title">Quick Start</h2>
-          <div class="split">
-            <div>
-              <p class="code-label">Upload with password authentication</p>
-              <pre><code>scp-next upload ./dist /var/www/example \
-  --host your-host \
-  --username your-username \
-  --password your-password \
-  --recursive</code></pre>
-            </div>
-            <div>
-              <p class="code-label">Download with password authentication</p>
-              <pre><code>scp-next download /var/log/example.log ./logs/example.log \
-  --host your-host \
-  --username your-username \
-  --password your-password</code></pre>
-            </div>
+      <section id="usage" class="section-band" aria-labelledby="usage-title">
+        <div class="container">
+          <div class="section-heading">
+            <h2 id="usage-title">Usage</h2>
+            <p>
+              Upload uses a local source and remote destination. Download reverses that
+              mapping.
+            </p>
           </div>
-
-          <div class="callout" style="margin-top: 18px">
-            Password arguments are convenient, but they may be exposed through shell
-            history and process listings. Prefer environment variables, SSH agents, or
-            protected private-key files for shared and production machines.
-          </div>
-
-          <div style="margin-top: 18px">
-            <p class="code-label">Use the library</p>
-            <pre><code>import { upload } from "scp-next";
-
-await upload({
-  host: process.env.SCP_NEXT_HOST,
-  username: process.env.SCP_NEXT_USERNAME,
-  password: process.env.SCP_NEXT_PASSWORD,
-  localPath: "./dist",
-  remotePath: "/var/www/example",
-  recursive: true,
-  overwrite: true
-});</code></pre>
-          </div>
-        </section>
-
-        <section id="cli-usage" class="section" aria-labelledby="cli-usage-title">
-          <h2 id="cli-usage-title">CLI Usage</h2>
-          <p>
-            Commands use the standard operand order:
-            <code>&lt;source&gt; &lt;destination&gt; [options]</code>.
-          </p>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Operation</th>
-                  <th>Source</th>
-                  <th>Destination</th>
-                  <th>Command</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Upload</td>
-                  <td>Local file or directory</td>
-                  <td>Remote path</td>
-                  <td>
-                    <code
-                      >scp-next upload &lt;source&gt; &lt;destination&gt; [options]</code
-                    >
-                  </td>
-                </tr>
-                <tr>
-                  <td>Download</td>
-                  <td>Remote file or directory</td>
-                  <td>Local path</td>
-                  <td>
-                    <code
-                      >scp-next download &lt;source&gt; &lt;destination&gt;
-                      [options]</code
-                    >
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="split" style="margin-top: 18px">
-            <div>
-              <p class="code-label">Upload with password authentication</p>
-              <pre><code>scp-next upload ./dist /var/www/example \
-  --host your-host \
-  --username your-username \
-  --password your-password \
-  --recursive</code></pre>
-            </div>
-            <div>
-              <p class="code-label">Download a log file</p>
-              <pre><code>scp-next download /var/log/example.log ./logs/example.log \
-  --host your-host \
-  --username your-username \
-  --password your-password</code></pre>
-            </div>
-          </div>
-          <div style="margin-top: 18px">
-            <p class="code-label">Upload, install, and reload</p>
-            <pre><code>scp-next upload ./dist /var/www/example \
+          <div class="row g-4">
+            <div class="col-lg-6">
+              <h3 class="h5">CLI upload</h3>
+              <pre class="code-sample"><code>scp-next upload ./dist /var/www/example \
   --host your-host \
   --username your-username \
   --recursive \
-  --post-upload-command "cd /var/www/example &amp;&amp; npm install --omit=dev" \
-  --post-upload-command "pm2 reload example"</code></pre>
-          </div>
-
-          <h3 style="margin-top: 24px">CLI Options</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Option</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>--host &lt;host&gt;</code></td>
-                  <td>SSH server host.</td>
-                </tr>
-                <tr>
-                  <td><code>--port &lt;port&gt;</code></td>
-                  <td>SSH server port. Defaults to <code>22</code>.</td>
-                </tr>
-                <tr>
-                  <td><code>--username &lt;username&gt;</code></td>
-                  <td>SSH username.</td>
-                </tr>
-                <tr>
-                  <td><code>--password &lt;password&gt;</code></td>
-                  <td>SSH password. Prefer environment variables, agents, or keys.</td>
-                </tr>
-                <tr>
-                  <td><code>--private-key &lt;privateKey&gt;</code></td>
-                  <td>Private-key content. Redacted from logs and errors.</td>
-                </tr>
-                <tr>
-                  <td><code>--private-key-file &lt;privateKeyFile&gt;</code></td>
-                  <td>Private-key file path. Supports <code>~</code> expansion.</td>
-                </tr>
-                <tr>
-                  <td><code>--passphrase &lt;passphrase&gt;</code></td>
-                  <td>Passphrase for an encrypted private key.</td>
-                </tr>
-                <tr>
-                  <td><code>--config &lt;path&gt;</code></td>
-                  <td>Explicit configuration file path.</td>
-                </tr>
-                <tr>
-                  <td><code>--profile &lt;name&gt;</code></td>
-                  <td>Named server profile from the configuration file.</td>
-                </tr>
-                <tr>
-                  <td><code>--recursive</code></td>
-                  <td>Transfer directories recursively. Defaults to off.</td>
-                </tr>
-                <tr>
-                  <td><code>--overwrite</code></td>
-                  <td>Allow replacing existing destination files.</td>
-                </tr>
-                <tr>
-                  <td><code>--create-directories</code></td>
-                  <td>Create missing destination directories. Enabled by default.</td>
-                </tr>
-                <tr>
-                  <td><code>--no-create-directories</code></td>
-                  <td>Disable automatic destination directory creation.</td>
-                </tr>
-                <tr>
-                  <td><code>--dry-run</code></td>
-                  <td>Resolve and validate without connecting or transferring.</td>
-                </tr>
-                <tr>
-                  <td><code>--post-upload-command &lt;command&gt;</code></td>
-                  <td>Run a remote command after a successful upload. Repeatable.</td>
-                </tr>
-                <tr>
-                  <td><code>--timeout &lt;milliseconds&gt;</code></td>
-                  <td>SSH connection ready timeout in milliseconds.</td>
-                </tr>
-                <tr>
-                  <td><code>--verbose</code></td>
-                  <td>Print non-sensitive diagnostic details.</td>
-                </tr>
-                <tr>
-                  <td><code>--quiet</code></td>
-                  <td>Disable progress and non-error output.</td>
-                </tr>
-                <tr>
-                  <td><code>--help</code></td>
-                  <td>Show command help.</td>
-                </tr>
-                <tr>
-                  <td><code>--version</code></td>
-                  <td>Show the package version.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p style="margin-top: 14px">
-            <code>--timeout</code> maps to the SSH <code>readyTimeout</code>. It controls
-            how long to wait for the connection handshake, not the duration of each file
-            transfer or the whole transfer run.
-          </p>
-        </section>
-
-        <section id="library" class="section" aria-labelledby="library-title">
-          <h2 id="library-title">Library API</h2>
-          <div class="grid">
-            <div class="tile">
-              <h3>ESM and CJS</h3>
-              <p>
-                Import from ESM or require from CommonJS using the same public functions.
-              </p>
+  --dry-run</code></pre>
             </div>
-            <div class="tile">
-              <h3>Explicit paths</h3>
-              <p>
-                Use `localPath` and `remotePath` so callers never infer locality from
-                direction.
-              </p>
-            </div>
-            <div class="tile">
-              <h3>Reusable client</h3>
-              <p>
-                Create a client, connect once, perform multiple transfers, and close
-                reliably.
-              </p>
-            </div>
-          </div>
-
-          <div class="split" style="margin-top: 18px">
-            <div>
-              <p class="code-label">ESM upload</p>
-              <pre><code>import { upload } from "scp-next";
+            <div class="col-lg-6">
+              <h3 class="h5">TypeScript upload</h3>
+              <pre class="code-sample"><code>import { upload } from "scp-next";
 
 await upload({
   host: process.env.SCP_NEXT_HOST,
@@ -372,581 +285,72 @@ await upload({
   password: process.env.SCP_NEXT_PASSWORD,
   localPath: "./dist",
   remotePath: "/var/www/example",
-  recursive: true,
-  overwrite: true,
-  postUploadCommands: [
-    "cd /var/www/example &amp;&amp; npm install --omit=dev",
-    "pm2 reload example"
-  ]
+  recursive: true
 });</code></pre>
             </div>
-            <div>
-              <p class="code-label">Reusable client</p>
-              <pre><code>import { createClient } from "scp-next";
+          </div>
+          <div class="security-note mt-4">
+            <strong>Credential safety:</strong> prefer environment variables, SSH agents,
+            or protected private-key files. CLI password arguments may appear in shell
+            history or process listings.
+          </div>
+        </div>
+      </section>
 
-const client = createClient({
-  host: process.env.SCP_NEXT_HOST,
-  username: process.env.SCP_NEXT_USERNAME,
-  password: process.env.SCP_NEXT_PASSWORD
-});
-
-try {
-  await client.connect();
-  await client.upload("./dist", "/var/www/example", {
-    recursive: true
-  });
-  const result = await client.exec("pm2 reload example");
-  console.log(result.stdout);
-} finally {
-              await client.close();
-}</code></pre>
+      <section
+        id="website-app-help"
+        class="section-band section-band--muted"
+        aria-labelledby="app-title"
+        data-pwa-install-help
+      >
+        <div class="container">
+          <div class="section-heading mb-0">
+            <h2 id="app-title">Install the documentation</h2>
+            <p>
+              Supported browsers can install this website, examples, and API reference for
+              quick access. Installing the documentation does not install the npm package
+              or grant SSH access.
+            </p>
+            <div data-pwa-install-container hidden>
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                data-pwa-install
+                hidden
+              >
+                Install documentation
+              </button>
             </div>
+            <p class="pwa-status" role="status" aria-live="polite" data-pwa-status></p>
           </div>
+        </div>
+      </section>
+    </main>
 
-          <div style="margin-top: 18px">
-            <p class="code-label">Use a configuration file</p>
-            <pre><code>import { readFile } from "node:fs/promises";
+    <aside class="pwa-update-notice" aria-label="Website update" data-pwa-update hidden>
+      <span>A new version of the <%= DISPLAY_NAME %> website is available.</span>
+      <button class="btn btn-primary btn-sm" type="button" data-pwa-update-now>
+        Update now
+      </button>
+    </aside>
 
-import { upload, type ScpNextConfig } from "scp-next";
-
-const config = JSON.parse(
-  await readFile(new URL("./scp-next.config.json", import.meta.url), "utf8")
-) as ScpNextConfig;
-
-await upload({
-  ...config.server,
-  ...config.transfer,
-  localPath: "./dist",
-  remotePath: "/var/www/example"
-});</code></pre>
-          </div>
-
-          <h3 style="margin-top: 24px">Library Options</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Used by</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>host</code></td>
-                  <td>server</td>
-                  <td>SSH server host.</td>
-                </tr>
-                <tr>
-                  <td><code>port</code></td>
-                  <td>server</td>
-                  <td>SSH server port. Defaults to <code>22</code>.</td>
-                </tr>
-                <tr>
-                  <td><code>username</code></td>
-                  <td>server</td>
-                  <td>SSH username.</td>
-                </tr>
-                <tr>
-                  <td><code>password</code></td>
-                  <td>server</td>
-                  <td>SSH password. Avoid logging or hard-coding this value.</td>
-                </tr>
-                <tr>
-                  <td><code>privateKey</code></td>
-                  <td>server</td>
-                  <td>Private-key content as a string or Buffer.</td>
-                </tr>
-                <tr>
-                  <td><code>privateKeyFile</code></td>
-                  <td>server</td>
-                  <td>Private-key file path.</td>
-                </tr>
-                <tr>
-                  <td><code>passphrase</code></td>
-                  <td>server</td>
-                  <td>Passphrase for an encrypted private key.</td>
-                </tr>
-                <tr>
-                  <td><code>agent</code></td>
-                  <td>server</td>
-                  <td>SSH agent socket path.</td>
-                </tr>
-                <tr>
-                  <td><code>hostFingerprint</code></td>
-                  <td>server</td>
-                  <td>Expected server host-key SHA-256 fingerprint.</td>
-                </tr>
-                <tr>
-                  <td><code>knownHostsFile</code></td>
-                  <td>server</td>
-                  <td>Known-hosts file for host verification.</td>
-                </tr>
-                <tr>
-                  <td><code>localPath</code></td>
-                  <td>upload/download</td>
-                  <td>Local source for upload or local destination for download.</td>
-                </tr>
-                <tr>
-                  <td><code>remotePath</code></td>
-                  <td>upload/download</td>
-                  <td>Remote destination for upload or remote source for download.</td>
-                </tr>
-                <tr>
-                  <td><code>recursive</code></td>
-                  <td>transfer</td>
-                  <td>Transfer directories recursively. Defaults to false.</td>
-                </tr>
-                <tr>
-                  <td><code>overwrite</code></td>
-                  <td>transfer</td>
-                  <td>Allow replacing existing files.</td>
-                </tr>
-                <tr>
-                  <td><code>createDirectories</code></td>
-                  <td>transfer</td>
-                  <td>Create missing destination directories. Defaults to true.</td>
-                </tr>
-                <tr>
-                  <td><code>dryRun</code></td>
-                  <td>transfer</td>
-                  <td>Validate and plan without modifying local or remote files.</td>
-                </tr>
-                <tr>
-                  <td><code>timeout</code></td>
-                  <td>server/transfer</td>
-                  <td>SSH connection ready timeout in milliseconds.</td>
-                </tr>
-                <tr>
-                  <td><code>postUploadCommands</code></td>
-                  <td>upload</td>
-                  <td>
-                    Remote command strings run sequentially after upload success and stop
-                    on a non-zero or missing exit status.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>onProgress</code></td>
-                  <td>transfer</td>
-                  <td>Progress callback for files and directory transfers.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p style="margin-top: 14px">
-            <code>client.exec()</code> accepts a command-specific <code>timeout</code>,
-            <code>failOnStderr</code>, and <code>maxBuffer</code>. Captured stdout and
-            stderr are limited to 10 MiB by default. A timeout closes the SSH channel;
-            remote process termination depends on the SSH server.
-          </p>
-        </section>
-
-        <section
-          id="advanced-usage"
-          class="section"
-          aria-labelledby="advanced-usage-title"
-        >
-          <h2 id="advanced-usage-title">Advanced Usage</h2>
-          <p>
-            `scp-next` supports JSON configuration files, named profiles, reusable jobs,
-            and environment variables. Explicit CLI input always wins.
-          </p>
-          <div class="split">
-            <div>
-              <p class="code-label">Config file</p>
-              <pre><code>{
-  "server": {
-    "host": "your-host",
-    "port": 22,
-    "username": "your-username",
-    "password": "your-password"
-  },
-  "transfer": {
-    "recursive": true,
-    "overwrite": true,
-    "createDirectories": true,
-    "timeout": 30000
-  }
-}</code></pre>
-            </div>
-            <div>
-              <p class="code-label">Configured job</p>
-              <pre><code>{
-  "jobs": {
-    "deploy": {
-      "operation": "upload",
-      "profile": "production",
-      "source": "./dist",
-      "destination": "/var/www/example",
-      "recursive": true,
-      "postUploadCommands": [
-        "cd /var/www/example &amp;&amp; npm install --omit=dev",
-        "pm2 reload example"
-      ]
-    }
-  }
-}</code></pre>
-            </div>
-          </div>
-
-          <div class="split" style="margin-top: 18px">
-            <div>
-              <p class="code-label">Explicit config path</p>
-              <pre><code>scp-next upload ./dist /var/www/example \
-  --config ./deploy/scp-next.json</code></pre>
-            </div>
-            <div>
-              <p class="code-label">Config profile</p>
-              <pre><code>scp-next upload ./dist /var/www/example \
-  --config ./scp-next.config.json \
-  --profile production</code></pre>
-            </div>
-          </div>
-
-          <h3 style="margin-top: 24px">Configuration File Options</h3>
-          <p>
-            Use <code>scp-next.config.json</code> in the current directory.
-            <code>scp-next</code> also auto-detects rc-style filenames:
-            <code>.scp-nextrc</code> and <code>.scp-nextrc.json</code>.
-          </p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Key</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>server</code></td>
-                  <td>SSH connection options such as host, port, username, and keys.</td>
-                </tr>
-                <tr>
-                  <td><code>transfer</code></td>
-                  <td>Transfer defaults such as recursive, overwrite, and timeout.</td>
-                </tr>
-                <tr>
-                  <td><code>defaultProfile</code></td>
-                  <td>Profile used when no CLI or environment profile is selected.</td>
-                </tr>
-                <tr>
-                  <td><code>profiles</code></td>
-                  <td>Named server connection profiles.</td>
-                </tr>
-                <tr>
-                  <td><code>jobs</code></td>
-                  <td>Reusable upload or download jobs for <code>scp-next run</code>.</td>
-                </tr>
-                <tr>
-                  <td>root server keys</td>
-                  <td>
-                    Simple configs may place server keys such as <code>host</code>,
-                    <code>username</code>, and <code>privateKeyFile</code> at the root.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 style="margin-top: 24px">Server Fields</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>host</code></td>
-                  <td>SSH server host.</td>
-                </tr>
-                <tr>
-                  <td><code>port</code></td>
-                  <td>SSH server port. Defaults to <code>22</code>.</td>
-                </tr>
-                <tr>
-                  <td><code>username</code></td>
-                  <td>SSH username.</td>
-                </tr>
-                <tr>
-                  <td><code>password</code></td>
-                  <td>
-                    SSH password. Prefer environment variables or protected secrets.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>privateKey</code></td>
-                  <td>Private-key content.</td>
-                </tr>
-                <tr>
-                  <td><code>privateKeyFile</code></td>
-                  <td>Private-key file path.</td>
-                </tr>
-                <tr>
-                  <td><code>passphrase</code></td>
-                  <td>Passphrase for an encrypted private key.</td>
-                </tr>
-                <tr>
-                  <td><code>agent</code></td>
-                  <td>SSH agent socket path.</td>
-                </tr>
-                <tr>
-                  <td><code>timeout</code></td>
-                  <td>SSH connection ready timeout in milliseconds.</td>
-                </tr>
-                <tr>
-                  <td><code>hostFingerprint</code></td>
-                  <td>Expected server host-key SHA-256 fingerprint.</td>
-                </tr>
-                <tr>
-                  <td><code>knownHostsFile</code></td>
-                  <td>Known-hosts file for host verification.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 style="margin-top: 24px">Transfer and Job Fields</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Used by</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>operation</code></td>
-                  <td>jobs</td>
-                  <td><code>upload</code> or <code>download</code>.</td>
-                </tr>
-                <tr>
-                  <td><code>profile</code></td>
-                  <td>jobs</td>
-                  <td>Named server profile for the job.</td>
-                </tr>
-                <tr>
-                  <td><code>source</code></td>
-                  <td>jobs</td>
-                  <td>Origin path. Local for upload, remote for download.</td>
-                </tr>
-                <tr>
-                  <td><code>destination</code></td>
-                  <td>jobs</td>
-                  <td>Destination path. Remote for upload, local for download.</td>
-                </tr>
-                <tr>
-                  <td><code>recursive</code></td>
-                  <td>transfer/jobs</td>
-                  <td>Transfer directories recursively. Defaults to false.</td>
-                </tr>
-                <tr>
-                  <td><code>overwrite</code></td>
-                  <td>transfer/jobs</td>
-                  <td>Allow replacing existing files.</td>
-                </tr>
-                <tr>
-                  <td><code>createDirectories</code></td>
-                  <td>transfer/jobs</td>
-                  <td>Create missing destination directories. Defaults to true.</td>
-                </tr>
-                <tr>
-                  <td><code>dryRun</code></td>
-                  <td>transfer/jobs</td>
-                  <td>Resolve and validate without connecting or transferring.</td>
-                </tr>
-                <tr>
-                  <td><code>timeout</code></td>
-                  <td>transfer/jobs</td>
-                  <td>SSH connection ready timeout in milliseconds.</td>
-                </tr>
-                <tr>
-                  <td><code>postUploadCommands</code></td>
-                  <td>transfer/upload jobs</td>
-                  <td>Remote commands run in order after a successful upload.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 style="margin-top: 24px">Environment Variables</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Variable</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>SCP_NEXT_HOST</code></td>
-                  <td>SSH server host.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PORT</code></td>
-                  <td>SSH server port.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_USERNAME</code></td>
-                  <td>SSH username.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PASSWORD</code></td>
-                  <td>SSH password.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PRIVATE_KEY</code></td>
-                  <td>Private-key content.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PRIVATE_KEY_FILE</code></td>
-                  <td>Private-key file path.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PASSPHRASE</code></td>
-                  <td>Passphrase for an encrypted private key.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_TIMEOUT</code></td>
-                  <td>SSH connection ready timeout in milliseconds.</td>
-                </tr>
-                <tr>
-                  <td><code>SCP_NEXT_PROFILE</code></td>
-                  <td>Named configuration profile.</td>
-                </tr>
-                <tr>
-                  <td><code>SSH_AUTH_SOCK</code></td>
-                  <td>SSH agent socket used when agent authentication is available.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 style="margin-top: 24px">Precedence</h3>
-          <ol>
-            <li>Explicit CLI options</li>
-            <li>Positional CLI operands</li>
-            <li>Environment variables</li>
-            <li>Selected configuration profile</li>
-            <li>Root-level configuration values</li>
-            <li>Configured job values</li>
-            <li>Internal defaults</li>
-          </ol>
-        </section>
-
-        <section id="user-guides" class="section" aria-labelledby="user-guides-title">
-          <h2 id="user-guides-title">User Guides</h2>
-          <p>
-            Read the versioned user guides for a fuller introduction to installation, CLI
-            transfers, configuration files, credential handling, library usage, and
-            onboarding.
-          </p>
-          <div class="grid">
-            <div class="tile">
-              <h3>English</h3>
-              <p>
-                <a
-                  href="https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-en.md"
-                  >Introducing scp-next v1.0.19</a
-                >
-              </p>
-            </div>
-            <div class="tile">
-              <h3>简体中文</h3>
-              <p>
-                <a
-                  href="https://github.com/chengchuu/scp-next/blob/main/guides/release-notes/introducing-scp-next-v1.0.19-zh.md"
-                  >scp-next v1.0.19 项目介绍</a
-                >
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="security" class="section" aria-labelledby="security-title">
-          <h2 id="security-title">Security</h2>
-          <ul class="security-list">
-            <li>
-              Transfers use SFTP through `ssh2-sftp-client`; remote shell execution is
-              isolated and opt-in through `exec()` or `postUploadCommands`.
-            </li>
-            <li>
-              Passwords, passphrases, private-key contents, and tokens are redacted from
-              logs and errors.
-            </li>
-            <li>
-              Host verification is not silently disabled. Configure known hosts or a host
-              fingerprint when required.
-            </li>
-            <li>
-              Local paths use OS-aware Node path behavior; remote paths preserve POSIX `/`
-              separators.
-            </li>
-            <li>
-              Dry-run mode resolves and validates a transfer plan without connecting or
-              modifying files or executing remote commands.
-            </li>
-            <li>
-              Remote commands run with the SSH user's permissions. Do not place secrets
-              directly in command strings.
-            </li>
+    <footer class="site-footer">
+      <div class="container d-lg-flex justify-content-between gap-4">
+        <p class="mb-3 mb-lg-0">
+          <strong><%= DISPLAY_NAME %></strong><br />MIT-licensed TypeScript CLI and
+          library.
+        </p>
+        <nav aria-label="Footer navigation">
+          <ul class="list-inline d-flex flex-wrap gap-3 mb-0">
+            <li><a href="./examples/">Examples</a></li>
+            <li><a href="./api/">API documentation</a></li>
+            <li><a href="<%= GITHUB_URL %>">GitHub repository</a></li>
+            <li><a href="<%= NPM_URL %>">npm package</a></li>
+            <li><a href="./sitemap.xml">XML sitemap</a></li>
+            <li><a href="<%= LICENSE_URL %>">MIT License</a></li>
           </ul>
-        </section>
-
-        <section id="architecture" class="section" aria-labelledby="architecture-title">
-          <h2 id="architecture-title">Architecture</h2>
-          <div class="grid">
-            <div class="tile">
-              <h3>CLI layer</h3>
-              <p>
-                Parses operands and options, prints readable output, and maps failures to
-                exit codes.
-              </p>
-            </div>
-            <div class="tile">
-              <h3>Client layer</h3>
-              <p>
-                Exposes upload, download, copy, and reusable client APIs without calling
-                `process.exit()`.
-              </p>
-            </div>
-            <div class="tile">
-              <h3>Transport boundary</h3>
-              <p>
-                Keeps SFTP access mockable, which lets integration tests run without a
-                production server.
-              </p>
-            </div>
-            <div class="tile">
-              <h3>Command boundary</h3>
-              <p>
-                Keeps explicit SSH command execution separate from the SFTP transport and
-                mockable in tests.
-              </p>
-            </div>
-          </div>
-          <p style="margin-top: 18px">
-            For deeper implementation notes, read
-            <a href="https://github.com/chengchuu/scp-next/blob/main/guides/ARCHITECTURE.md"
-              >guides/ARCHITECTURE.md</a
-            >.
-          </p>
-        </section>
-
-        <footer class="footer">
-          <p>
-            MIT licensed. Published as
-            <a href="https://www.npmjs.com/package/scp-next">scp-next</a>. Source
-            available on <a href="https://github.com/chengchuu/scp-next">GitHub</a>.
-          </p>
-        </footer>
-      </main>
-    </div>
+        </nav>
+      </div>
+    </footer>
   </body>
 </html>
