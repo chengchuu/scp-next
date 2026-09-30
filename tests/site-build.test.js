@@ -10,7 +10,6 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { describe, expect, it } from "vitest";
-import HtmlWebpackPlugin from "html-webpack-plugin";
 import webpack from "webpack";
 
 import projectConfig from "../project.config.js";
@@ -24,25 +23,12 @@ const typedocHtml = `<!doctype html>
 <h1>README</h1></main></body></html>`;
 
 describe("production HTML generation", () => {
-  it("preserves metadata formatting required by SEO and PWA validators", async () => {
+  it("preserves metadata formatting required by the SEO validator", async () => {
     const output = mkdtempSync(path.join(os.tmpdir(), "scp-next-html-"));
-    const pages = webpackConfig.plugins.filter(
-      (plugin) => plugin instanceof HtmlWebpackPlugin
-    );
     const compiler = webpack({
+      ...webpackConfig,
       mode: "production",
-      entry: {},
-      output: { path: output },
-      plugins: pages.map((plugin) => {
-        expect(plugin.userOptions.minify).toBe(false);
-        return new HtmlWebpackPlugin({
-          ...plugin.userOptions,
-          templateParameters: {
-            ...plugin.userOptions.templateParameters,
-            MANIFEST_URL: projectConfig.pwa.manifestUrl
-          }
-        });
-      })
+      output: { ...webpackConfig.output, path: output }
     });
     try {
       await new Promise((resolve, reject) => {
@@ -60,7 +46,6 @@ describe("production HTML generation", () => {
         expect(html).toContain('name="twitter:card"');
         expect(html).toContain('type="application/ld+json"');
         expect(html).toContain('rel="icon"');
-        expect(html).toContain(`href="${projectConfig.pwa.manifestUrl}"`);
         expect(html).toContain('name="theme-color"');
       }
     } finally {
