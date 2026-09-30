@@ -79,4 +79,23 @@ describe("CLI output", () => {
 
     expect(stderr.output.endsWith("\n")).toBe(true);
   });
+
+  it("formats zero bytes and binary-unit boundaries", () => {
+    const stderr = new MemoryStream();
+    const reporter = createProgressReporter({
+      stdout: new MemoryStream(),
+      stderr
+    });
+
+    reporter?.({
+      operation: "download",
+      source: "/archive.tar.gz",
+      destination: "./archive.tar.gz",
+      transferredBytes: 0,
+      totalBytes: 1024,
+      percentage: 0
+    });
+
+    expect(stderr.output).toBe("\rDownloading 0 B / 1.0 KB (0%)");
+  });
 });

@@ -16,13 +16,24 @@ describe("configuration loading and precedence", () => {
       configPath,
       JSON.stringify({
         server: { host: "example.com", username: "deploy" },
-        transfer: { recursive: true }
+        transfer: { recursive: true },
+        jobs: {
+          deploy: {
+            operation: "upload",
+            source: "./dist",
+            destination: "/var/www/example",
+            postUploadCommands: ["  pm2 reload example  "]
+          }
+        }
       })
     );
 
     const loaded = await loadConfig(configPath, directory);
     expect(loaded.config.server?.host).toBe("example.com");
     expect(loaded.config.transfer?.recursive).toBe(true);
+    expect(loaded.config.jobs?.deploy?.postUploadCommands).toEqual([
+      "  pm2 reload example  "
+    ]);
   });
 
   it("selects profiles and applies CLI over env over config", () => {
@@ -67,6 +78,30 @@ describe("configuration loading and precedence", () => {
     expect(resolved.createDirectories).toBe(false);
   });
 
+  it("preserves false overrides and ignores undefined values between layers", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "/var/log/example.log",
+      destination: "./logs/example.log",
+      config: {
+        transfer: {
+          recursive: true,
+          overwrite: true,
+          createDirectories: true
+        }
+      },
+      cli: {
+        recursive: false,
+        overwrite: undefined,
+        createDirectories: false
+      }
+    });
+
+    expect(resolved.recursive).toBe(false);
+    expect(resolved.overwrite).toBe(true);
+    expect(resolved.createDirectories).toBe(false);
+  });
+
   it("repairs upload remote destinations rewritten by Git Bash on Windows", () => {
     const resolved = resolveTransferConfig({
       operation: "upload",
@@ -105,7 +140,8 @@ describe("configuration loading and precedence", () => {
             profile: "production",
             source: "./dist",
             destination: "/var/www/example",
-            recursive: true
+            recursive: true,
+            postUploadCommands: ["npm install --omit=dev", "pm2 reload example"]
           }
         }
       }
@@ -116,6 +152,64 @@ describe("configuration loading and precedence", () => {
     expect(resolved.destination).toBe("/var/www/example");
     expect(resolved.host).toBe("production.example.com");
     expect(resolved.recursive).toBe(true);
+    expect(resolved.postUploadCommands).toEqual([
+      "npm install --omit=dev",
+      "pm2 reload example"
+    ]);
+  });
+
+  it("validates post-upload commands after applying configuration precedence", () => {
+    const resolved = resolveTransferConfig({
+      jobName: "deploy",
+      config: {
+        jobs: {
+          deploy: {
+            operation: "upload",
+            source: "./dist",
+            destination: "/var/www/example",
+            postUploadCommands: [""]
+          }
+        }
+      },
+      cli: {
+        postUploadCommands: ["pm2 reload example"]
+      }
+    });
+
+    expect(resolved.postUploadCommands).toEqual(["pm2 reload example"]);
+  });
+
+  it("ignores upload-only transfer defaults for downloads", () => {
+    const resolved = resolveTransferConfig({
+      operation: "download",
+      source: "/var/log/example.log",
+      destination: "./example.log",
+      config: {
+        transfer: {
+          postUploadCommands: ["should-not-run"]
+        }
+      }
+    });
+
+    expect(resolved.postUploadCommands).toBeUndefined();
+  });
+
+  it("rejects post-upload commands configured directly on download jobs", () => {
+    expect(() =>
+      resolveTransferConfig({
+        jobName: "download-logs",
+        config: {
+          jobs: {
+            "download-logs": {
+              operation: "download",
+              source: "/var/log/example.log",
+              destination: "./example.log",
+              postUploadCommands: ["should-not-run"]
+            }
+          }
+        }
+      })
+    ).toThrow("Post-upload commands are not supported for downloads.");
   });
 
   it("fails safely for invalid profiles and jobs", () => {

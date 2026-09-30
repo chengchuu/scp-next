@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-
 import SftpClient from "ssh2-sftp-client";
 import type {
   ConnectOptions as SftpConnectOptions,
@@ -13,10 +11,9 @@ import {
   TransferError,
   toScpNextError
 } from "../errors/index.js";
-import { createHostVerifier, resolveAllowedFingerprints } from "../security/host-verification.js";
 import { formatErrorMessage } from "../security/redact.js";
 import type { ScpServerOptions } from "../types/index.js";
-import { expandHome } from "../paths/local-path.js";
+import { createSshConnectOptions } from "./ssh-options.js";
 
 export interface RemoteFileInfo {
   type: "-" | "d" | "l";
@@ -68,32 +65,10 @@ export class Ssh2SftpTransport implements SftpTransport {
   }
 
   async connect(options: ScpServerOptions): Promise<void> {
-    const allowedFingerprints = await resolveAllowedFingerprints(options);
-    const hostVerifier = createHostVerifier(allowedFingerprints);
-
-    const connectOptions: SftpConnectOptions = {};
-    if (options.host !== undefined) connectOptions.host = options.host;
-    if (options.port !== undefined) connectOptions.port = options.port;
-    if (options.username !== undefined) connectOptions.username = options.username;
-    if (options.password !== undefined) connectOptions.password = options.password;
-    if (options.privateKey !== undefined) {
-      connectOptions.privateKey = options.privateKey;
-    } else if (options.privateKeyFile) {
-      connectOptions.privateKey = await readFile(expandHome(options.privateKeyFile), "utf8");
-    }
-    if (options.passphrase !== undefined) connectOptions.passphrase = options.passphrase;
-    const agent = options.agent ?? process.env.SSH_AUTH_SOCK;
-    if (agent !== undefined) {
-      connectOptions.agent = agent;
-    }
-    if (options.timeout !== undefined) connectOptions.readyTimeout = options.timeout;
-    if (hostVerifier) {
-      connectOptions.hostHash = "sha256";
-      connectOptions.hostVerifier = hostVerifier;
-    }
+    const connectOptions = await createSshConnectOptions(options);
 
     try {
-      await this.client.connect(connectOptions);
+      await this.client.connect(connectOptions as SftpConnectOptions);
     } catch (error) {
       const converted = toScpNextError(error);
       if (converted instanceof HostVerificationError) {

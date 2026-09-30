@@ -28,7 +28,10 @@ const transferSchema = z.object({
   overwrite: z.boolean().optional(),
   createDirectories: z.boolean().optional(),
   dryRun: z.boolean().optional(),
-  timeout: z.number().int().optional()
+  timeout: z.number().int().optional(),
+  postUploadCommands: z
+    .array(z.string().refine((command) => command.trim().length > 0))
+    .optional()
 });
 
 const jobSchema = transferSchema.extend({

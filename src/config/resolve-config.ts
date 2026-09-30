@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import { assignDefined } from "mazey";
+
 import { selectJob } from "./jobs.js";
 import { selectProfile } from "./profiles.js";
 import type { EnvironmentConfig } from "./environment.js";
@@ -13,6 +15,12 @@ import type {
 } from "../types/index.js";
 import { resolveLocalPath } from "../paths/local-path.js";
 import { restoreMsysConvertedRemotePath } from "../paths/remote-path.js";
+import { ValidationError } from "../errors/index.js";
+import {
+  clearPostUploadCommands,
+  getPostUploadCommands,
+  readPostUploadCommands
+} from "./post-upload-commands.js";
 
 export interface CliTransferOptions extends ScpServerOptions, Omit<TransferOptions, "onProgress"> {
   profile?: string | undefined;
@@ -37,20 +45,6 @@ const DEFAULT_TRANSFER: Omit<ResolvedTransferConfig, "operation" | "source" | "d
   createDirectories: true,
   dryRun: false
 };
-
-function assignDefined<T extends object>(target: T, source: object | undefined): T {
-  if (!source) {
-    return target;
-  }
-
-  for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
-    if (value !== undefined) {
-      Object.assign(target, { [key]: value });
-    }
-  }
-
-  return target;
-}
 
 function rootServer(config: ScpNextConfig): ScpServerOptions {
   const result: ScpServerOptions = {};
@@ -81,7 +75,8 @@ function jobTransfer(job: TransferJob | undefined): Omit<TransferOptions, "onPro
     overwrite: job.overwrite,
     createDirectories: job.createDirectories,
     dryRun: job.dryRun,
-    timeout: job.timeout
+    timeout: job.timeout,
+    postUploadCommands: readPostUploadCommands(job) as TransferOptions["postUploadCommands"]
   });
 }
 
@@ -157,10 +152,8 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
     passphrase: env.passphrase,
     timeout: env.timeout
   });
-  assignDefined(resolved, {
-    source: input.source,
-    destination: input.destination
-  });
+  if (input.source !== undefined) resolved.source = input.source;
+  if (input.destination !== undefined) resolved.destination = input.destination;
   assignDefined(resolved, cli);
 
   if (selectedProfileName) {
@@ -168,6 +161,7 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
   }
 
   const pathResolved = resolveConfigRelatedPaths(resolved, operation, configDirectory);
+  getPostUploadCommands(pathResolved);
 
   if (input.source && operation === "upload") {
     pathResolved.source = resolveLocalPath(input.source, cwd);
@@ -179,6 +173,13 @@ export function resolveTransferConfig(input: ResolveTransferInput): ResolvedTran
 
   if (operation === "download") {
     pathResolved.source = restoreMsysConvertedRemotePath(pathResolved.source);
+    if (
+      getPostUploadCommands(job)?.length ||
+      getPostUploadCommands(cli)?.length
+    ) {
+      throw new ValidationError("Post-upload commands are not supported for downloads.");
+    }
+    clearPostUploadCommands(pathResolved);
   }
 
   if (input.destination && operation === "download") {

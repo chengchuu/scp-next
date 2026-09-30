@@ -1,5 +1,15 @@
-import type { ResolvedTransferConfig, TransferProgress } from "../types/index.js";
-import { redactSensitiveValues } from "../security/redact.js";
+import { formatByteSize } from "mazey";
+
+import type {
+  ExecResult,
+  ResolvedTransferConfig,
+  TransferProgress
+} from "../types/index.js";
+import {
+  redactKnownSensitiveValues,
+  redactSensitiveValues
+} from "../security/redact.js";
+import { getPostUploadCommands } from "../config/post-upload-commands.js";
 
 export interface Output {
   stdout: NodeJS.WritableStream & { isTTY?: boolean };
@@ -7,6 +17,7 @@ export interface Output {
 }
 
 export function writeDryRun(output: Output, config: ResolvedTransferConfig): void {
+  const postUploadCommands = getPostUploadCommands(config) ?? [];
   const destination =
     config.operation === "upload"
       ? `${config.username ?? "user"}@${config.host ?? "host"}:${config.destination}`
@@ -17,6 +28,36 @@ export function writeDryRun(output: Output, config: ResolvedTransferConfig): voi
   output.stdout.write(`Destination: ${destination}\n`);
   output.stdout.write(`Recursive: ${config.recursive ? "yes" : "no"}\n`);
   output.stdout.write(`Overwrite: ${config.overwrite ? "yes" : "no"}\n`);
+  if (config.operation === "upload" && postUploadCommands.length > 0) {
+    output.stdout.write("\nPost-upload commands:\n");
+    postUploadCommands.forEach((command, index) => {
+      output.stdout.write(
+        `${index + 1}. ${redactKnownSensitiveValues(command, config)}\n`
+      );
+    });
+  }
+}
+
+export function writeCommandResults(
+  output: Output,
+  results: ExecResult[],
+  config: ResolvedTransferConfig
+): void {
+  results.forEach((result, index) => {
+    output.stdout.write(`Remote command ${index + 1} completed successfully.\n`);
+    if (result.stdout) {
+      output.stdout.write(
+        redactKnownSensitiveValues(result.stdout, config)
+      );
+      if (!result.stdout.endsWith("\n")) output.stdout.write("\n");
+    }
+    if (result.stderr) {
+      output.stderr.write(
+        redactKnownSensitiveValues(result.stderr, config)
+      );
+      if (!result.stderr.endsWith("\n")) output.stderr.write("\n");
+    }
+  });
 }
 
 export function createProgressReporter(
@@ -55,8 +96,8 @@ export function createProgressReporter(
       return;
     }
 
-    const total = progress.totalBytes ? formatBytes(progress.totalBytes) : "?";
-    const transferred = formatBytes(progress.transferredBytes);
+    const total = progress.totalBytes ? formatByteSize(progress.totalBytes) : "?";
+    const transferred = formatByteSize(progress.transferredBytes);
     const percentage = progress.percentage === undefined ? "" : ` (${progress.percentage}%)`;
     const currentFile = progress.currentFile ? `: ${progress.currentFile}` : "";
     const line = `${progress.operation === "upload" ? "Uploading" : "Downloading"}${currentFile} ${transferred} / ${total}${percentage}`;
@@ -75,6 +116,7 @@ export function createProgressReporter(
 }
 
 export function verbosePlan(output: Output, config: ResolvedTransferConfig): void {
+  const postUploadCommands = getPostUploadCommands(config);
   output.stderr.write(
     `${JSON.stringify(
       redactSensitiveValues({
@@ -87,24 +129,13 @@ export function verbosePlan(output: Output, config: ResolvedTransferConfig): voi
         recursive: config.recursive,
         overwrite: config.overwrite,
         createDirectories: config.createDirectories,
-        dryRun: config.dryRun
+        dryRun: config.dryRun,
+        postUploadCommands: postUploadCommands?.map(
+          (_command, index) => `command-${index + 1}`
+        )
       }),
       null,
       2
     )}\n`
   );
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  return `${value.toFixed(1)} ${units[unitIndex]}`;
 }

@@ -6,8 +6,11 @@ import { Command, CommanderError } from "commander";
 
 import { download } from "../client/download.js";
 import { upload } from "../client/upload.js";
-import { ScpNextError } from "../errors/index.js";
-import { formatErrorMessage } from "../security/redact.js";
+import { RemoteCommandError, ScpNextError } from "../errors/index.js";
+import {
+  formatErrorMessage,
+  redactKnownSensitiveValues
+} from "../security/redact.js";
 import { createDownloadCommand } from "./commands/download.js";
 import { createRunCommand } from "./commands/run.js";
 import { createUploadCommand } from "./commands/upload.js";
@@ -81,6 +84,16 @@ export async function runCli(options: RunCliOptions = {}): Promise<number> {
     }
 
     const verbose = (options.argv ?? process.argv).includes("--verbose");
+    if (error instanceof RemoteCommandError) {
+      if (error.stdout) {
+        output.stdout.write(redactKnownSensitiveValues(error.stdout, {}));
+        if (!error.stdout.endsWith("\n")) output.stdout.write("\n");
+      }
+      if (error.stderr) {
+        output.stderr.write(redactKnownSensitiveValues(error.stderr, {}));
+        if (!error.stderr.endsWith("\n")) output.stderr.write("\n");
+      }
+    }
     if (error instanceof ScpNextError) {
       output.stderr.write(`Error: ${formatErrorMessage(error.message)}\n`);
       if (verbose && error.cause instanceof Error) {

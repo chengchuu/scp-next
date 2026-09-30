@@ -4,6 +4,7 @@ import { ValidationError } from "../errors/index.js";
 import { assertDownloadDestination, assertLocalPathExists, resolveLocalPath } from "../paths/local-path.js";
 import { assertRemotePath } from "../paths/remote-path.js";
 import type { DownloadOptions, ScpServerOptions, UploadOptions } from "../types/index.js";
+import { getPostUploadCommands } from "./post-upload-commands.js";
 
 function validatePort(port: number | undefined): void {
   if (port === undefined) {
@@ -72,6 +73,7 @@ export async function validateUploadOptions(options: UploadOptions): Promise<voi
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
+  getPostUploadCommands(options);
   await assertLocalPathExists(options.localPath);
 
   if (!options.dryRun) {
@@ -88,6 +90,9 @@ export async function validateDownloadOptions(options: DownloadOptions): Promise
   }
   assertRemotePath(options.remotePath, "remotePath");
   validateTimeout(options.timeout);
+  if (getPostUploadCommands(options)?.length) {
+    throw new ValidationError("Post-upload commands are not supported for downloads.");
+  }
   await assertDownloadDestination(options.localPath, options.createDirectories ?? true);
 
   if (!options.dryRun) {
