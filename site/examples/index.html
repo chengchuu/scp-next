@@ -6,7 +6,17 @@
     <title><%= EXAMPLES_TITLE %></title>
     <meta name="description" content="<%= EXAMPLES_DESCRIPTION %>" />
     <link rel="canonical" href="<%= EXAMPLES_URL %>" />
-    <link rel="icon" href="<%= FAVICON_URL %>" type="image/svg+xml" />
+    <link
+      rel="icon"
+      href="<%= FAVICON_URL %>"
+      type="<%= FAVICON_TYPE %>"
+      sizes="<%= FAVICON_SIZES %>"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="<%= APPLE_TOUCH_ICON_URL %>"
+      sizes="<%= APPLE_TOUCH_ICON_SIZES %>"
+    />
     <% if (MANIFEST_URL) { %>
     <link rel="manifest" href="<%= MANIFEST_URL %>" />
     <% } %>
@@ -266,13 +276,6 @@
         </div>
       </section>
     </main>
-
-    <aside class="pwa-update-notice" aria-label="Website update" data-pwa-update hidden>
-      <span>A new version of the <%= DISPLAY_NAME %> website is available.</span>
-      <button class="btn btn-primary btn-sm" type="button" data-pwa-update-now>
-        Update now
-      </button>
-    </aside>
 
     <noscript>
       <div class="container py-4">
