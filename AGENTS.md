@@ -145,7 +145,8 @@ Build output must include:
 
 The CLI file must keep the Node shebang.
 
-The published package contains `dist`, `README.md`, `LICENSE`, `CHANGELOG.md`, and `guides`.
+The published package contains `dist`, `README.md`, `LICENSE`, and `guides`, including
+`guides/CHANGELOG.md`.
 Website source, examples, tests, and generated Pages output are development-only and must not leak
 into the runtime package.
 
@@ -225,7 +226,7 @@ Documentation is split by audience:
 - `README.md`: primary npm and GitHub usage guide.
 - `guides/ARCHITECTURE.md`: implementation and dependency architecture.
 - `guides/RELEASE_NOTES/`: long-form release announcements.
-- `CHANGELOG.md`: concise version history.
+- `guides/CHANGELOG.md`: concise version history.
 - `site/`: source for browser-based project documentation.
 - `docs/`: generated GitHub Pages output only.
 

@@ -20,9 +20,9 @@
 `scp-next` is an SCP-style CLI and library for secure SSH file transfers. It uses SFTP through
 `ssh2-sftp-client` rather than implementing SCP or SFTP directly.
 
-Read the [documentation](https://chengchuu.github.io/scp-next/), generate CLI snippets with the
-[interactive examples](https://chengchuu.github.io/scp-next/examples/), or browse the
-[API documentation](https://chengchuu.github.io/scp-next/api/).
+- [Project website](https://chengchuu.github.io/scp-next/)
+- [Interactive examples](https://chengchuu.github.io/scp-next/examples/)
+- [API documentation](https://chengchuu.github.io/scp-next/api/)
 
 ## Contents
 
@@ -559,6 +559,9 @@ await upload({
 `hostFingerprint` compares the server host key SHA-256 fingerprint. `knownHostsFile` supports plain OpenSSH `known_hosts` entries for exact host names. When neither is supplied, `scp-next` reads `~/.ssh/known_hosts`. Hashed host names and every OpenSSH marker variant are not currently parsed.
 
 `scp-next` fails closed if it cannot establish a host verifier. Use `hostFingerprint` for CI or deployments where a known-hosts file is not available.
+
+For failures, follow [Host verification troubleshooting](https://github.com/chengchuu/scp-next/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md)
+to scan into a temporary file, verify fingerprints independently, and save only verified keys.
 
 ### Progress Reporting
 

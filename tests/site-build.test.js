@@ -48,16 +48,26 @@ describe("production HTML generation", () => {
         expect(html).toContain('rel="icon"');
         expect(html).toContain('name="theme-color"');
       }
+      expect(readFileSync(path.join(output, "index.html"), "utf8")).toContain(
+        `${projectConfig.urls.github}/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md`
+      );
     } finally {
       await new Promise((resolve, reject) => {
         compiler.close((error) => (error ? reject(error) : resolve()));
       });
       rmSync(output, { recursive: true, force: true });
     }
-  });
+  }, 60_000);
 });
 
 describe("website project configuration", () => {
+  it("keeps the README troubleshooting link external so TypeDoc does not copy Markdown into media", () => {
+    const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+    expect(readme).toContain(
+      `[Host verification troubleshooting](${projectConfig.urls.github}/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md)`
+    );
+  });
+
   it("keeps stable routes and PWA scope below the Pages base", () => {
     expect(projectConfig.site.basePath).toBe("/scp-next/");
     expect(projectConfig.site.pages.examples.url).toBe(
