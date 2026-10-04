@@ -6,7 +6,11 @@ import { Command, CommanderError } from "commander";
 
 import { download } from "../client/download.js";
 import { upload } from "../client/upload.js";
-import { RemoteCommandError, ScpNextError } from "../errors/index.js";
+import {
+  HostVerificationError,
+  RemoteCommandError,
+  ScpNextError
+} from "../errors/index.js";
 import {
   formatErrorMessage,
   redactKnownSensitiveValues
@@ -96,7 +100,12 @@ export async function runCli(options: RunCliOptions = {}): Promise<number> {
     }
     if (error instanceof ScpNextError) {
       output.stderr.write(`Error: ${formatErrorMessage(error.message)}\n`);
-      if (verbose && error.cause instanceof Error) {
+      // Host-verification causes can contain untrusted server text or credential-bearing paths.
+      if (
+        verbose &&
+        !(error instanceof HostVerificationError) &&
+        error.cause instanceof Error
+      ) {
         output.stderr.write(`${formatErrorMessage(error.cause.stack ?? error.cause.message)}\n`);
       }
       return 1;

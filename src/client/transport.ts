@@ -12,6 +12,7 @@ import {
   toScpNextError
 } from "../errors/index.js";
 import { formatErrorMessage } from "../security/redact.js";
+import { hostVerificationDiagnostics } from "../security/host-verification-diagnostics.js";
 import type { ScpServerOptions } from "../types/index.js";
 import { createSshConnectOptions } from "./ssh-options.js";
 
@@ -71,19 +72,12 @@ export class Ssh2SftpTransport implements SftpTransport {
       await this.client.connect(connectOptions as SftpConnectOptions);
     } catch (error) {
       const converted = toScpNextError(error);
-      if (converted instanceof HostVerificationError) {
+      if (
+        converted instanceof HostVerificationError ||
+        isLikelyHostVerificationFailure(error)
+      ) {
         throw new HostVerificationError(
-          `SSH host verification failed during connection: ${formatErrorMessage(
-            error
-          )}.${hostVerificationTroubleshooting(options.host)}`,
-          { cause: error, context: connectionContext(options) }
-        );
-      }
-      if (isLikelyHostVerificationFailure(error)) {
-        throw new HostVerificationError(
-          `SSH host verification failed during connection.${hostVerificationTroubleshooting(
-            options.host
-          )}`,
+          `The host key could not be verified.${hostVerificationDiagnostics(options)}`,
           { cause: error, context: connectionContext(options) }
         );
       }
@@ -171,19 +165,4 @@ function isLikelyHostVerificationFailure(error: unknown): boolean {
       message.includes("key mismatch") ||
       message.includes("denied"))
   );
-}
-
-function hostVerificationTroubleshooting(host: string | undefined): string {
-  const displayHost = host ?? "<host>";
-  return [
-    "",
-    "",
-    "Typical fix:",
-    `  ssh ${displayHost}`,
-    "",
-    "If plain ssh works but scp-next fails, check that the host entry is available in",
-    "`~/.ssh/known_hosts` for the same host and port used by scp-next. For non-default ports,",
-    "OpenSSH usually stores entries as `[host]:port`.",
-    "You can also configure hostFingerprint or knownHostsFile explicitly."
-  ].join("\n");
 }

@@ -1,6 +1,6 @@
 {
   "name": "scp-next",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "An SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -26,7 +26,6 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md",
     "guides"
   ],
   "scripts": {
@@ -78,7 +77,7 @@
   },
   "dependencies": {
     "commander": "^12.1.0",
-    "mazey": "^5.6.1",
+    "mazey": "^5.10.4",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^11.0.0",
     "zod": "^3.23.8"

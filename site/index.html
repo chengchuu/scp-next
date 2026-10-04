@@ -138,7 +138,7 @@
     <main id="main-content">
       <section class="hero" aria-labelledby="page-title">
         <div class="container">
-          <div class="row align-items-center g-5">
+          <div class="row align-items-center gx-4 gy-5 gx-lg-5">
             <div class="col-lg-7">
               <p class="text-uppercase fw-semibold text-muted-custom mb-2">
                 Secure SSH transfers for Node.js
@@ -226,7 +226,12 @@
                 <span class="feature-marker" aria-hidden="true">6</span>
                 <h3>Host verification</h3>
                 <p class="mb-0">
-                  Verify host keys with fingerprints or known-hosts files when configured.
+                  Verify host keys with fingerprints or known-hosts files. Follow the
+                  <a
+                    href="<%= GITHUB_URL %>/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md"
+                    >host verification troubleshooting guide</a
+                  >
+                  if verification fails.
                 </p>
               </div>
             </article>
