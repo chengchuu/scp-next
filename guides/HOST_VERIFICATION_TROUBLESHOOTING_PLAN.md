@@ -1,7 +1,8 @@
 # Host verification troubleshooting plan
 
-Status: Proposed. Implementation requires user confirmation. Creating this plan does not
-authorize changes to runtime code, SSH trust files, or server connections.
+Status: Implemented after user approval. See the
+[host verification troubleshooting guide](HOST_VERIFICATION_TROUBLESHOOTING.md).
+The implementation does not scan hosts, modify SSH trust files, or disable verification.
 
 ## Goal
 
@@ -9,7 +10,7 @@ Replace generic SSH troubleshooting tips with concise guidance to scan, verify, 
 host keys. Show the configured endpoint and trust file, and distinguish missing trust
 information from a possible key mismatch when the failure path provides that evidence.
 
-## Current limitations
+## Baseline limitations (before implementation)
 
 - `hostVerificationTroubleshooting()` in `src/client/transport.ts` suggests `ssh <host>`
   without the configured port or known-hosts path.
@@ -105,3 +106,19 @@ artifact. Inspect the final diff and package contents before handoff.
 
 The package currently includes all of `guides` in its published files. This plan will therefore
 be included in a future package unless its location or packaging policy is deliberately changed.
+
+### Implementation validation
+
+Typecheck, lint, all 102 tests, package build, ESM/CommonJS smoke checks, CLI shebang,
+documentation links, the full documentation build (including SEO and PWA checks), and
+`npm pack --dry-run` passed.
+
+The initial Webpack schema failure came from a stale installation of Webpack 5.109.2, not
+an invalid configuration. Synchronizing installed dependencies with the committed lockfile
+restored Webpack 5.111.1, which supports `optimization.minimizeOptions`. The production-build
+test now has a 60-second timeout rather than the default five seconds. Manifest and lockfile
+versions and build configuration remain unchanged.
+
+The README troubleshooting link uses the repository URL so TypeDoc does not copy the
+handwritten Markdown guide into generated API media. Documentation links are checked again
+after the Pages build to verify the generated output remains free of Markdown source files.
