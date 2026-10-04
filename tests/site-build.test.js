@@ -23,7 +23,7 @@ const typedocHtml = `<!doctype html>
 <h1>README</h1></main></body></html>`;
 
 describe("production HTML generation", () => {
-  it("preserves metadata formatting required by the SEO validator", async () => {
+  it("preserves SEO metadata and responsive hero gutters", async () => {
     const output = mkdtempSync(path.join(os.tmpdir(), "scp-next-html-"));
     const compiler = webpack({
       ...webpackConfig,
@@ -50,6 +50,10 @@ describe("production HTML generation", () => {
       }
       expect(readFileSync(path.join(output, "index.html"), "utf8")).toContain(
         `${projectConfig.urls.github}/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md`
+      );
+      // Match the container's horizontal padding on mobile without reducing vertical spacing.
+      expect(readFileSync(path.join(output, "index.html"), "utf8")).toContain(
+        'class="row align-items-center gx-4 gy-5 gx-lg-5"'
       );
     } finally {
       await new Promise((resolve, reject) => {
