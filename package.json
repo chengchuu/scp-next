@@ -1,6 +1,6 @@
 {
   "name": "scp-next",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "description": "An SCP CLI and library for secure SSH file transfers using SFTP.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -89,7 +89,7 @@
     "@types/node": "^22.10.2",
     "@types/ssh2": "^1.15.5",
     "@types/ssh2-sftp-client": "^9.0.4",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.12",
     "bootstrap": "5.3.8",
     "cross-env": "^10.1.0",
     "css-loader": "^7.1.4",
@@ -106,7 +106,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1",
-    "vitest": "^4.1.9",
+    "vitest": "^4.1.12",
     "webpack": "^5.111.1",
     "webpack-cli": "^7.2.1",
     "webpack-dev-server": "^6.0.0"
