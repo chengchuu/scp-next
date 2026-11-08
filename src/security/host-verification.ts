@@ -3,6 +3,7 @@ import { access, readFile } from "node:fs/promises";
 
 import { HostVerificationError } from "../errors/index.js";
 import { expandHome } from "../paths/local-path.js";
+import { hostVerificationDiagnostics } from "./host-verification-diagnostics.js";
 
 function normalizeFingerprint(fingerprint: string): string {
   return fingerprint
@@ -53,17 +54,6 @@ export interface HostVerifierConfig {
   knownHostsFile?: string | undefined;
 }
 
-function hostVerificationHint(host: string): string {
-  return [
-    "",
-    "Typical fix:",
-    `  ssh ${host}`,
-    "",
-    "If you trust the host key, accept it and retry the scp-next command.",
-    "Alternatively configure hostFingerprint or knownHostsFile explicitly."
-  ].join("\n");
-}
-
 export async function resolveAllowedFingerprints(
   options: HostVerifierConfig
 ): Promise<Set<string>> {
@@ -104,8 +94,15 @@ export async function resolveAllowedFingerprints(
     }
   } catch (error) {
     if (options.knownHostsFile || !options.hostFingerprint) {
+      const missing =
+        error !== null &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT";
       throw new HostVerificationError(
-        "SSH host verification requires hostFingerprint or an accessible knownHostsFile.",
+        `SSH host verification failed before connecting: the known-hosts file ${
+          missing ? "was not found" : "could not be read"
+        }.${hostVerificationDiagnostics(options)}`,
         { cause: error, context: { knownHostsFile } }
       );
     }
@@ -113,9 +110,7 @@ export async function resolveAllowedFingerprints(
 
   if (fingerprints.size === 0) {
     throw new HostVerificationError(
-      `SSH host verification failed before connecting: no matching host fingerprint was configured.${hostVerificationHint(
-        options.host
-      )}`
+      `SSH host verification failed before connecting: no usable matching host keys were found.${hostVerificationDiagnostics(options)}`
     );
   }
 

@@ -67,6 +67,14 @@ selected dependency and SFTP servers include:
 - Atomic replacement behavior depends on the server; overwrite control is checked before
   transfer and is not a distributed lock.
 
+## Host Verification Diagnostics
+
+`src/security/host-verification-diagnostics.ts` supplies shared diagnostics for trust-file
+resolution, SFTP connection failures, and command-executor connection failures. It displays
+escaped, redacted endpoint and trust settings without scanning hosts or modifying trust files.
+The [troubleshooting guide](HOST_VERIFICATION_TROUBLESHOOTING.md) documents explicit user actions;
+diagnostics do not change fingerprint matching or the combined allowed-key set.
+
 ## Remote Command Execution
 
 `src/client/command-executor.ts` is separate from `src/client/transport.ts`; the SFTP

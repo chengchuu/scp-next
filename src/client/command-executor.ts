@@ -8,6 +8,7 @@ import {
   toScpNextError
 } from "../errors/index.js";
 import { formatErrorMessage } from "../security/redact.js";
+import { hostVerificationDiagnostics } from "../security/host-verification-diagnostics.js";
 import type { ExecOptions, ExecResult, ScpServerOptions } from "../types/index.js";
 import { createSshConnectOptions } from "./ssh-options.js";
 
@@ -54,7 +55,19 @@ export class SshCommandExecutor implements CommandExecutor {
         }
         const converted = toScpNextError(error);
         if (converted instanceof HostVerificationError) {
-          reject(converted);
+          reject(
+            new HostVerificationError(
+              `The host key could not be verified.${hostVerificationDiagnostics(options)}`,
+              {
+                cause: error,
+                context: {
+                  host: options.host,
+                  port: options.port,
+                  username: options.username
+                }
+              }
+            )
+          );
           return;
         }
         reject(

@@ -23,7 +23,7 @@ const typedocHtml = `<!doctype html>
 <h1>README</h1></main></body></html>`;
 
 describe("production HTML generation", () => {
-  it("preserves metadata formatting required by the SEO validator", async () => {
+  it("preserves SEO metadata and responsive hero gutters", async () => {
     const output = mkdtempSync(path.join(os.tmpdir(), "scp-next-html-"));
     const compiler = webpack({
       ...webpackConfig,
@@ -48,16 +48,30 @@ describe("production HTML generation", () => {
         expect(html).toContain('rel="icon"');
         expect(html).toContain('name="theme-color"');
       }
+      expect(readFileSync(path.join(output, "index.html"), "utf8")).toContain(
+        `${projectConfig.urls.github}/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md`
+      );
+      // Match the container's horizontal padding on mobile without reducing vertical spacing.
+      expect(readFileSync(path.join(output, "index.html"), "utf8")).toContain(
+        'class="row align-items-center gx-4 gy-5 gx-lg-5"'
+      );
     } finally {
       await new Promise((resolve, reject) => {
         compiler.close((error) => (error ? reject(error) : resolve()));
       });
       rmSync(output, { recursive: true, force: true });
     }
-  });
+  }, 60_000);
 });
 
 describe("website project configuration", () => {
+  it("keeps the README troubleshooting link external so TypeDoc does not copy Markdown into media", () => {
+    const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+    expect(readme).toContain(
+      `[Host verification troubleshooting](${projectConfig.urls.github}/blob/main/guides/HOST_VERIFICATION_TROUBLESHOOTING.md)`
+    );
+  });
+
   it("keeps stable routes and PWA scope below the Pages base", () => {
     expect(projectConfig.site.basePath).toBe("/scp-next/");
     expect(projectConfig.site.pages.examples.url).toBe(

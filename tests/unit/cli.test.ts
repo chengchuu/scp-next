@@ -11,7 +11,8 @@ import { isCliEntrypoint, runCli } from "../../src/cli/index.js";
 import { createDownloadCommand } from "../../src/cli/commands/download.js";
 import { createRunCommand } from "../../src/cli/commands/run.js";
 import { createUploadCommand } from "../../src/cli/commands/upload.js";
-import { RemoteCommandError } from "../../src/errors/index.js";
+import { HostVerificationError, RemoteCommandError } from "../../src/errors/index.js";
+import { hostVerificationDiagnostics } from "../../src/security/host-verification-diagnostics.js";
 import type {
   DownloadOptions,
   ExecResult,
@@ -434,6 +435,52 @@ describe("CLI", () => {
     expect(stderr.output).not.toContain("do-not-print");
     expect(stderr.output).not.toContain("false");
   });
+
+  it.each([false, true])(
+    "does not print an unsafe host-verification cause (verbose=%s)",
+    async (verbose) => {
+      const stdout = new MemoryStream();
+      const stderr = new MemoryStream();
+      const handlers = mockHandlers();
+      const cause = new Error(
+        "Host verification failed: secret-password\n\u001b[31muntrusted detail"
+      );
+      const options = { host: "example.com", password: "secret-password" };
+      handlers.upload.mockRejectedValue(
+        new HostVerificationError(
+          `The host key could not be verified.${hostVerificationDiagnostics(options)}`,
+          { cause }
+        )
+      );
+
+      const exitCode = await runCli({
+        argv: [
+          "node",
+          "scp-next",
+          "upload",
+          "./dist",
+          "/example",
+          "--host",
+          options.host,
+          "--username",
+          "deploy",
+          "--password",
+          options.password,
+          ...(verbose ? ["--verbose"] : [])
+        ],
+        output: { stdout, stderr },
+        handlers,
+        cwd: "/workspace"
+      });
+
+      expect(exitCode).toBe(1);
+      expect(stderr.output).toContain("The host key could not be verified.");
+      expect(stderr.output).toContain('Host: "example.com"');
+      for (const unsafe of [options.password, "\u001b", "untrusted detail"]) {
+        expect(stdout.output + stderr.output).not.toContain(unsafe);
+      }
+    }
+  );
 });
 
 function mockHandlers() {
